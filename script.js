@@ -10,12 +10,13 @@ const modalInfoList = document.getElementById('modalInfoList');
 const modalRating = document.getElementById('modalRating');
 const closeModalBtn = document.getElementById('closeModalBtn');
 
-// Close modal
+// Modal close btn
 closeModalBtn.addEventListener('click', () => {
   infoModal.close();
   searchForm.querySelector('button[type="submit"]').focus();
 });
 
+// Close on ESC
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && infoModal.open) {
     infoModal.close();
@@ -134,45 +135,37 @@ async function openModal(id) {
   }
 }
 
-// ✅ Load Semua Airing Anime Aman
+// ✅ AIRING POPULER ONLY
 async function fetchAllAiringAnime() {
-  airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading all airing anime...</p>`;
-  let page = 1;
-  let hasNext = true;
-  const seen = new Set();
-
-  airingContainer.innerHTML = '';
+  airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading...</p>`;
 
   try {
-    while (hasNext) {
-      const res = await fetch(`${apiBase}/seasons/now?page=${page}`);
-      if (!res.ok) throw new Error(`Error ${res.status}`);
-      const json = await res.json();
+    const res = await fetch(`${apiBase}/seasons/now?order_by=score&sort=desc&limit=10`);
+    if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
+    const { data } = await res.json();
 
-      json.data.forEach(anime => {
-        if (!seen.has(anime.mal_id)) {
-          seen.add(anime.mal_id);
-          airingContainer.appendChild(createAnimeCard(anime));
-        }
-      });
+    airingContainer.innerHTML = '';
+    const seenIds = new Set();
 
-      hasNext = json.pagination?.has_next_page;
-      page++;
-      await new Promise(r => setTimeout(r, 300)); // delay biar aman
-    }
+    data.forEach(anime => {
+      if (!seenIds.has(anime.mal_id)) {
+        seenIds.add(anime.mal_id);
+        airingContainer.appendChild(createAnimeCard(anime));
+      }
+    });
   } catch (err) {
     airingContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load airing anime.</p>`;
-    console.error("Error fetching airing:", err);
+    console.error('Error in fetchAllAiringAnime:', err);
   }
 }
 
-// Search submit
+// 🔍 Search submit
 searchForm.addEventListener('submit', e => {
   e.preventDefault();
   fetchAnime(queryInput.value.trim());
 });
 
-// Load on startup
+// 🏁 On Load
 window.onload = () => {
   queryInput.focus();
   fetchAllAiringAnime();
