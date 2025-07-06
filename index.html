@@ -1,0 +1,216 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MyAnimeList Tracker</title>
+  <script src="https://cdn.tailwindcss.com?plugins=line-clamp"></script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 20px; }
+    ::-webkit-scrollbar-track { background: #1e293b; }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none; margin: 0;
+    }
+    .line-clamp-4 {
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-gray-100 min-h-screen flex flex-col items-center p-4 max-w-md mx-auto selection:bg-blue-600 selection:text-white">
+
+  <!-- Header -->
+  <header class="w-full max-w-md flex flex-col items-center mb-5">
+    <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-indigo-500 via-pink-500 to-rose-500 overflow-hidden flex items-center justify-center border-4 border-blue-600 mb-3 drop-shadow-lg">
+      <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/f95517ff-2265-46cd-b818-f3aff08dbca9.png"
+        alt="Anime girl"
+        class="w-full h-full object-cover"
+        onerror="this.onerror=null;this.src='https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/d52b5e84-02b1-41c4-96d7-3f3650b5c713.png';" />
+    </div>
+    <h1 class="text-3xl font-extrabold tracking-tight select-none">Anime Tracker</h1>
+  </header>
+
+  <!-- Search -->
+  <form id="searchForm" class="flex w-full max-w-md gap-2 mb-6">
+    <input id="queryInput" type="search" placeholder="Search anime title..." required autocomplete="off"
+      class="flex-grow rounded-md border border-gray-700 bg-slate-800 px-4 py-3 placeholder:text-slate-400 text-white focus:outline-none focus:ring-2 focus:ring-blue-600" />
+    <button type="submit" class="bg-blue-600 rounded-md px-4 py-3 hover:bg-blue-700 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M21 21l-4.35-4.35M16.65 16.65a7 7 0 10-9.9-9.9 7 7 0 009.9 9.9z" />
+      </svg>
+    </button>
+  </form>
+
+  <!-- Results -->
+  <main id="resultsContainer" class="w-full max-w-md flex flex-col gap-4"></main>
+
+  <!-- Modal -->
+  <dialog id="infoModal" class="bg-slate-800 rounded-lg p-5 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl border border-blue-600">
+    <button id="closeModalBtn" class="absolute top-3 right-3 text-gray-400 hover:text-white focus:outline-none">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <h2 id="modalTitle" class="text-2xl font-bold mb-4"></h2>
+    <div id="modalDesc" class="text-sm leading-relaxed mb-4 whitespace-pre-wrap"></div>
+    <ul id="modalInfoList" class="text-sm space-y-1 mb-4"></ul>
+    <div id="modalRating" class="text-yellow-400 font-semibold text-lg"></div>
+  </dialog>
+
+  <!-- Script -->
+  <script>
+    const apiBase = "https://api.jikan.moe/v4";
+    const searchForm = document.getElementById('searchForm');
+    const queryInput = document.getElementById('queryInput');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const infoModal = document.getElementById('infoModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDesc = document.getElementById('modalDesc');
+    const modalInfoList = document.getElementById('modalInfoList');
+    const modalRating = document.getElementById('modalRating');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+
+    closeModalBtn.addEventListener('click', () => {
+      infoModal.close();
+      searchForm.querySelector('button[type="submit"]').focus();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && infoModal.open) {
+        infoModal.close();
+        searchForm.querySelector('button[type="submit"]').focus();
+      }
+    });
+
+    function formatDate(dateStr) {
+      if (!dateStr) return "Unknown";
+      const d = new Date(dateStr);
+      return isNaN(d) ? "Unknown" : d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    function createAnimeCard(anime) {
+      const div = document.createElement('article');
+      div.setAttribute('tabindex', '0');
+      div.className = 'bg-slate-800 rounded-md flex gap-4 p-3 hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 cursor-pointer shadow';
+
+      const img = document.createElement('img');
+      img.src = anime.images.jpg.image_url;
+      img.alt = `Cover image for ${anime.title}`;
+      img.className = "w-20 h-28 rounded-md flex-shrink-0 object-cover border border-gray-600";
+      img.onerror = function () {
+        this.src = 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/647f8a56-45bb-416e-9ddd-10d7c0000b19.png';
+      };
+
+      const info = document.createElement('div');
+      info.className = 'flex flex-col justify-between';
+
+      const title = document.createElement('h3');
+      title.className = 'font-semibold text-lg leading-tight';
+      title.textContent = anime.title;
+
+      const synopsis = document.createElement('p');
+      synopsis.className = 'line-clamp-4 mt-1 mb-2 text-slate-300 text-sm leading-snug';
+      synopsis.textContent = anime.synopsis || "No synopsis available.";
+
+      const score = document.createElement('p');
+      score.className = 'text-slate-400 text-sm';
+      score.textContent = `Score: ${anime.score ?? "N/A"}`;
+
+      info.append(title, synopsis, score);
+      div.append(img, info);
+
+      div.addEventListener('click', () => openModal(anime.mal_id));
+      div.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openModal(anime.mal_id);
+        }
+      });
+
+      return div;
+    }
+
+    async function fetchAnime(query) {
+      if (!query.trim()) {
+        resultsContainer.innerHTML = `<p class="text-center text-slate-400 mt-10">Please enter an anime name to search.</p>`;
+        return;
+      }
+
+      resultsContainer.innerHTML = `<p class="text-center text-slate-400 mt-10">Loading...</p>`;
+      try {
+        const res = await fetch(`${apiBase}/anime?q=${encodeURIComponent(query)}&limit=20`);
+        const data = await res.json();
+
+        if (!data.data.length) {
+          resultsContainer.innerHTML = `<p class="text-center text-slate-400 mt-10">No results found for "<strong>${query}</strong>".</p>`;
+          return;
+        }
+
+        // Fix duplikat
+        const seenIds = new Set();
+        resultsContainer.innerHTML = '';
+        for (const anime of data.data) {
+          if (seenIds.has(anime.mal_id)) continue;
+          seenIds.add(anime.mal_id);
+          resultsContainer.appendChild(createAnimeCard(anime));
+        }
+      } catch (err) {
+        resultsContainer.innerHTML = `<p class="text-center text-red-500 mt-10">Failed to fetch data. Please try again.</p>`;
+        console.error(err);
+      }
+    }
+
+    async function openModal(id) {
+      modalTitle.textContent = "Loading details...";
+      modalDesc.textContent = "";
+      modalInfoList.innerHTML = "";
+      modalRating.textContent = "";
+      infoModal.showModal();
+
+      try {
+        const res = await fetch(`${apiBase}/anime/${id}/full`);
+        const { data } = await res.json();
+
+        modalTitle.textContent = data.title;
+        modalDesc.textContent = data.synopsis || "No synopsis available.";
+
+        const infoRows = [
+          { label: 'Episodes', value: data.episodes ?? "Unknown" },
+          { label: 'Studio', value: data.studios.map(s => s.name).join(', ') || "Unknown" },
+          { label: 'Producers', value: data.producers.map(p => p.name).join(', ') || "Unknown" },
+          { label: 'Release Date', value: formatDate(data.aired.from) },
+          { label: 'Status', value: data.status ?? "Unknown" },
+          { label: 'Genres', value: data.genres.map(g => g.name).join(', ') || "Unknown" }
+        ];
+
+        infoRows.forEach(row => {
+          const li = document.createElement('li');
+          li.innerHTML = `<span class="font-semibold text-blue-400">${row.label}:</span> ${row.value}`;
+          modalInfoList.appendChild(li);
+        });
+
+        modalRating.textContent = data.score ? `⭐ Rating: ${data.score}` : "";
+
+        infoModal.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (err) {
+        modalTitle.textContent = "Failed to load details";
+        modalDesc.textContent = "Unable to retrieve info. Please try again.";
+        console.error(err);
+      }
+    }
+
+    searchForm.addEventListener('submit', e => {
+      e.preventDefault();
+      fetchAnime(queryInput.value.trim());
+    });
+
+    window.onload = () => queryInput.focus();
+  </script>
+</body>
+</html>
