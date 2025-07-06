@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com?plugins=line-clamp"></script>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body class="bg-slate-950 text-gray-100 min-h-screen flex flex-col items-center p-4 max-w-md mx-auto selection:bg-blue-600 selection:text-white">
+<body class="bg-slate-950 text-gray-100 min-h-screen flex flex-col items-center p-4 max-w-md mx-auto selection:bg-blue-600 selection:text-white pb-16">
 
   <!-- Header -->
   <header class="w-full max-w-md flex flex-col items-center mb-5">
@@ -53,8 +53,8 @@
     <ul id="modalInfoList" class="text-sm space-y-1 mb-4"></ul>
     <div id="modalRating" class="text-yellow-400 font-semibold text-lg"></div>
   </dialog>
-<!-- Footer -->
-<footer class="w-full max-w-md text-center text-sm text-slate-400 border-t border-slate-700 pt-4 mt-10">
+  <!-- Sticky Footer -->
+<footer class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-700 text-center text-sm text-slate-400 py-2 z-50">
   <p>&copy; <span id="year"></span> Anime Tracker. Built with 💙 using Jikan API & Tailwind CSS.</p>
 </footer>
   <script src="script.js"></script>
