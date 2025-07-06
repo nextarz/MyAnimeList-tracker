@@ -84,13 +84,14 @@ async function fetchAnime(query) {
     const seenIds = new Set();
     resultsContainer.innerHTML = '';
     data.forEach(anime => {
-      if (seenIds.has(anime.mal_id)) return;
-      seenIds.add(anime.mal_id);
-      resultsContainer.appendChild(createAnimeCard(anime));
+      if (!seenIds.has(anime.mal_id)) {
+        seenIds.add(anime.mal_id);
+        resultsContainer.appendChild(createAnimeCard(anime));
+      }
     });
   } catch (err) {
     resultsContainer.innerHTML = `<p class="text-center text-red-500 mt-10">Failed to fetch data. Please try again.</p>`;
-    console.error(err);
+    console.error('Error in fetchAnime:', err);
   }
 }
 
@@ -128,11 +129,11 @@ async function openModal(id) {
   } catch (err) {
     modalTitle.textContent = "Failed to load details";
     modalDesc.textContent = "Unable to retrieve info. Please try again.";
-    console.error(err);
+    console.error('Error in openModal:', err);
   }
 }
 
-// Fetch ALL airing anime (loop all pages)
+// ✅ FIX: Load ALL airing anime with debug logs
 async function fetchAllAiringAnime() {
   airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading...</p>`;
   let currentPage = 1;
@@ -142,32 +143,40 @@ async function fetchAllAiringAnime() {
   try {
     airingContainer.innerHTML = '';
     while (hasNext) {
+      console.log(`Fetching airing page ${currentPage}...`);
       const res = await fetch(`${apiBase}/seasons/now?page=${currentPage}`);
+      if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
       const json = await res.json();
-      const data = json.data;
-      hasNext = json.pagination.has_next_page;
 
-      data.forEach(anime => {
+      console.log(`Page ${currentPage}:`, json.pagination);
+      hasNext = json.pagination?.has_next_page;
+
+      for (const anime of json.data) {
         if (!seenIds.has(anime.mal_id)) {
           seenIds.add(anime.mal_id);
           airingContainer.appendChild(createAnimeCard(anime));
         }
-      });
+      }
 
       currentPage++;
+      await new Promise(r => setTimeout(r, 300)); // sedikit delay biar aman
     }
+
+    console.log("✅ Done fetching all airing anime");
   } catch (err) {
     airingContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load airing anime.</p>`;
-    console.error(err);
+    console.error('Error in fetchAllAiringAnime:', err);
   }
 }
 
+// 🔍 Search
 searchForm.addEventListener('submit', e => {
   e.preventDefault();
   fetchAnime(queryInput.value.trim());
 });
 
+// 🏁 On Load
 window.onload = () => {
   queryInput.focus();
-  fetchAllAiringAnime(); // All airing anime, no limit
+  fetchAllAiringAnime();
 };
