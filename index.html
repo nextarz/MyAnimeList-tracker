@@ -1,10 +1,9 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MyAnimeList Tracker</title>
+  <title>Anime Tracker</title>
   <script src="https://cdn.tailwindcss.com?plugins=line-clamp"></script>
   <style>
     ::-webkit-scrollbar { width: 6px; }
@@ -47,8 +46,14 @@
     </button>
   </form>
 
-  <!-- Results -->
-  <main id="resultsContainer" class="w-full max-w-md flex flex-col gap-4"></main>
+  <!-- Search Results -->
+  <main id="resultsContainer" class="w-full max-w-md flex flex-col gap-4 mb-10"></main>
+
+  <!-- Airing Section -->
+  <section id="airingSection" class="w-full max-w-md">
+    <h2 class="text-xl font-bold mb-4">🔥 Currently Airing</h2>
+    <div id="airingContainer" class="flex flex-col gap-4"></div>
+  </section>
 
   <!-- Modal -->
   <dialog id="infoModal" class="bg-slate-800 rounded-lg p-5 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl border border-blue-600">
@@ -69,6 +74,7 @@
     const searchForm = document.getElementById('searchForm');
     const queryInput = document.getElementById('queryInput');
     const resultsContainer = document.getElementById('resultsContainer');
+    const airingContainer = document.getElementById('airingContainer');
     const infoModal = document.getElementById('infoModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalDesc = document.getElementById('modalDesc');
@@ -97,7 +103,7 @@
     function createAnimeCard(anime) {
       const div = document.createElement('article');
       div.setAttribute('tabindex', '0');
-      div.className = 'bg-slate-800 rounded-md flex gap-4 p-3 hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 cursor-pointer shadow';
+      div.className = 'bg-slate-800 rounded-md flex gap-4 p-3 hover:bg-slate-700 transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 cursor-pointer shadow';
 
       const img = document.createElement('img');
       img.src = anime.images.jpg.image_url;
@@ -145,21 +151,15 @@
       resultsContainer.innerHTML = `<p class="text-center text-slate-400 mt-10">Loading...</p>`;
       try {
         const res = await fetch(`${apiBase}/anime?q=${encodeURIComponent(query)}&limit=20`);
-        const data = await res.json();
+        const { data } = await res.json();
 
-        if (!data.data.length) {
-          resultsContainer.innerHTML = `<p class="text-center text-slate-400 mt-10">No results found for "<strong>${query}</strong>".</p>`;
-          return;
-        }
-
-        // Fix duplikat
         const seenIds = new Set();
         resultsContainer.innerHTML = '';
-        for (const anime of data.data) {
-          if (seenIds.has(anime.mal_id)) continue;
+        data.forEach(anime => {
+          if (seenIds.has(anime.mal_id)) return;
           seenIds.add(anime.mal_id);
           resultsContainer.appendChild(createAnimeCard(anime));
-        }
+        });
       } catch (err) {
         resultsContainer.innerHTML = `<p class="text-center text-red-500 mt-10">Failed to fetch data. Please try again.</p>`;
         console.error(err);
@@ -196,11 +196,29 @@
         });
 
         modalRating.textContent = data.score ? `⭐ Rating: ${data.score}` : "";
-
         infoModal.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (err) {
         modalTitle.textContent = "Failed to load details";
         modalDesc.textContent = "Unable to retrieve info. Please try again.";
+        console.error(err);
+      }
+    }
+
+    async function fetchAiringAnime() {
+      airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading...</p>`;
+      try {
+        const res = await fetch(`${apiBase}/seasons/now?limit=12`);
+        const { data } = await res.json();
+
+        airingContainer.innerHTML = '';
+        const seenIds = new Set();
+        data.forEach(anime => {
+          if (seenIds.has(anime.mal_id)) return;
+          seenIds.add(anime.mal_id);
+          airingContainer.appendChild(createAnimeCard(anime));
+        });
+      } catch (err) {
+        airingContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load airing anime.</p>`;
         console.error(err);
       }
     }
@@ -210,7 +228,10 @@
       fetchAnime(queryInput.value.trim());
     });
 
-    window.onload = () => queryInput.focus();
+    window.onload = () => {
+      queryInput.focus();
+      fetchAiringAnime(); // Load airing anime saat buka
+    };
   </script>
 </body>
 </html>
