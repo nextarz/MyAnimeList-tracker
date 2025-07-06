@@ -10,7 +10,7 @@ const modalInfoList = document.getElementById('modalInfoList');
 const modalRating = document.getElementById('modalRating');
 const closeModalBtn = document.getElementById('closeModalBtn');
 
-// Close modal
+// Modal close handler
 closeModalBtn.addEventListener('click', () => {
   infoModal.close();
   searchForm.querySelector('button[type="submit"]').focus();
@@ -23,16 +23,18 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
+// Format date
 function formatDate(dateStr) {
   if (!dateStr) return "Unknown";
   const d = new Date(dateStr);
   return isNaN(d) ? "Unknown" : d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+// Anime card
 function createAnimeCard(anime) {
   const div = document.createElement('article');
   div.setAttribute('tabindex', '0');
-  div.className = 'bg-slate-800 rounded-md flex gap-4 p-3 hover:bg-slate-700 transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 cursor-pointer shadow';
+  div.className = 'bg-slate-800 rounded-md flex gap-4 p-3 hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 cursor-pointer shadow';
 
   const img = document.createElement('img');
   img.src = anime.images.jpg.image_url;
@@ -71,6 +73,7 @@ function createAnimeCard(anime) {
   return div;
 }
 
+// Fetch search
 async function fetchAnime(query) {
   if (!query.trim()) {
     resultsContainer.innerHTML = `<p class="text-center text-slate-400 mt-10">Please enter an anime name to search.</p>`;
@@ -96,6 +99,44 @@ async function fetchAnime(query) {
   }
 }
 
+// Fetch full airing with delay per page
+async function fetchAllAiringAnime() {
+  airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading airing anime...</p>`;
+  let page = 1;
+  let hasNext = true;
+  const seen = new Set();
+  airingContainer.innerHTML = '';
+
+  try {
+    while (hasNext) {
+      const res = await fetch(`${apiBase}/seasons/now?page=${page}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+
+      json.data.forEach(anime => {
+        if (!seen.has(anime.mal_id)) {
+          seen.add(anime.mal_id);
+          airingContainer.appendChild(createAnimeCard(anime));
+        }
+      });
+
+      hasNext = json.pagination?.has_next_page;
+      page++;
+
+      // Delay 400ms untuk hindarin rate limit
+      await new Promise(resolve => setTimeout(resolve, 400));
+    }
+
+    if (seen.size === 0) {
+      airingContainer.innerHTML = `<p class="text-slate-400 text-center">No airing anime found.</p>`;
+    }
+  } catch (err) {
+    airingContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load airing anime.</p>`;
+    console.error("Error fetching airing:", err);
+  }
+}
+
+// Modal detail
 async function openModal(id) {
   modalTitle.textContent = "Loading details...";
   modalDesc.textContent = "";
@@ -134,45 +175,13 @@ async function openModal(id) {
   }
 }
 
-// ✅ Load Semua Airing Anime Aman
-async function fetchAllAiringAnime() {
-  airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading all airing anime...</p>`;
-  let page = 1;
-  let hasNext = true;
-  const seen = new Set();
-
-  airingContainer.innerHTML = '';
-
-  try {
-    while (hasNext) {
-      const res = await fetch(`${apiBase}/seasons/now?page=${page}`);
-      if (!res.ok) throw new Error(`Error ${res.status}`);
-      const json = await res.json();
-
-      json.data.forEach(anime => {
-        if (!seen.has(anime.mal_id)) {
-          seen.add(anime.mal_id);
-          airingContainer.appendChild(createAnimeCard(anime));
-        }
-      });
-
-      hasNext = json.pagination?.has_next_page;
-      page++;
-      await new Promise(r => setTimeout(r, 300)); // delay biar aman
-    }
-  } catch (err) {
-    airingContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load airing anime.</p>`;
-    console.error("Error fetching airing:", err);
-  }
-}
-
-// Search submit
+// Event: search submit
 searchForm.addEventListener('submit', e => {
   e.preventDefault();
   fetchAnime(queryInput.value.trim());
 });
 
-// Load on startup
+// Start app
 window.onload = () => {
   queryInput.focus();
   fetchAllAiringAnime();
