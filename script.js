@@ -10,11 +10,13 @@ const modalInfoList = document.getElementById('modalInfoList');
 const modalRating = document.getElementById('modalRating');
 const closeModalBtn = document.getElementById('closeModalBtn');
 
+// Modal close btn
 closeModalBtn.addEventListener('click', () => {
   infoModal.close();
   searchForm.querySelector('button[type="submit"]').focus();
 });
 
+// Close on ESC
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && infoModal.open) {
     infoModal.close();
@@ -133,43 +135,31 @@ async function openModal(id) {
   }
 }
 
-// ✅ FIX: Load ALL airing anime with debug logs
+// ✅ AIRING POPULER ONLY
 async function fetchAllAiringAnime() {
   airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading...</p>`;
-  let currentPage = 1;
-  let hasNext = true;
-  const seenIds = new Set();
 
   try {
+    const res = await fetch(`${apiBase}/seasons/now?order_by=score&sort=desc&limit=10`);
+    if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
+    const { data } = await res.json();
+
     airingContainer.innerHTML = '';
-    while (hasNext) {
-      console.log(`Fetching airing page ${currentPage}...`);
-      const res = await fetch(`${apiBase}/seasons/now?page=${currentPage}`);
-      if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
-      const json = await res.json();
+    const seenIds = new Set();
 
-      console.log(`Page ${currentPage}:`, json.pagination);
-      hasNext = json.pagination?.has_next_page;
-
-      for (const anime of json.data) {
-        if (!seenIds.has(anime.mal_id)) {
-          seenIds.add(anime.mal_id);
-          airingContainer.appendChild(createAnimeCard(anime));
-        }
+    data.forEach(anime => {
+      if (!seenIds.has(anime.mal_id)) {
+        seenIds.add(anime.mal_id);
+        airingContainer.appendChild(createAnimeCard(anime));
       }
-
-      currentPage++;
-      await new Promise(r => setTimeout(r, 300)); // sedikit delay biar aman
-    }
-
-    console.log("✅ Done fetching all airing anime");
+    });
   } catch (err) {
     airingContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load airing anime.</p>`;
     console.error('Error in fetchAllAiringAnime:', err);
   }
 }
 
-// 🔍 Search
+// 🔍 Search submit
 searchForm.addEventListener('submit', e => {
   e.preventDefault();
   fetchAnime(queryInput.value.trim());
