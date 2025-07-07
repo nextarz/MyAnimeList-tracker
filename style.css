@@ -28,3 +28,9 @@ input[type=number]::-webkit-outer-spin-button {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+#openingSongs, #endingSongs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
