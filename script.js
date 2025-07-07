@@ -1,4 +1,3 @@
-// Final script.js (tanpa lagu, scroll ke atas saat buka modal, airing anime unlimited)
 const apiBase = "https://api.jikan.moe/v4";
 
 const searchForm = document.getElementById("searchForm");
@@ -12,9 +11,13 @@ const modalDesc = document.getElementById("modalDesc");
 const modalInfoList = document.getElementById("modalInfoList");
 const modalRating = document.getElementById("modalRating");
 const closeModalBtn = document.getElementById("closeModalBtn");
+
 const trailerContainer = document.getElementById("trailerContainer");
 const trailerFrame = document.getElementById("trailerFrame");
+
 const modalCharacters = document.querySelector("#modalCharacters .grid");
+const openingSongs = document.getElementById("openingSongs");
+const endingSongs = document.getElementById("endingSongs");
 
 closeModalBtn.addEventListener("click", closeModal);
 window.addEventListener("keydown", (e) => {
@@ -83,36 +86,30 @@ async function fetchAnime(query) {
 async function fetchAiringAnime() {
   airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading airing anime...</p>`;
   try {
-    let currentPage = 1;
-    let hasMore = true;
-    const seen = new Set();
+    const res = await fetch(`${apiBase}/seasons/now`);
+    const { data } = await res.json();
     airingContainer.innerHTML = "";
-
-    while (hasMore) {
-      const res = await fetch(`${apiBase}/seasons/now?page=${currentPage}`);
-      const { data, pagination } = await res.json();
-      data.forEach((anime) => {
-        if (!seen.has(anime.mal_id)) {
-          seen.add(anime.mal_id);
-          airingContainer.appendChild(createAnimeCard(anime));
-        }
-      });
-      hasMore = pagination.has_next_page;
-      currentPage++;
-    }
+    const seen = new Set();
+    data.forEach((anime) => {
+      if (!seen.has(anime.mal_id)) {
+        seen.add(anime.mal_id);
+        airingContainer.appendChild(createAnimeCard(anime));
+      }
+    });
   } catch {
     airingContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load airing anime.</p>`;
   }
 }
 
 async function openModal(id) {
-  window.scrollTo({ top: 0, behavior: "smooth" });
   infoModal.showModal();
   modalTitle.textContent = "Loading...";
   modalDesc.textContent = "";
   modalInfoList.innerHTML = "";
   modalRating.textContent = "";
   modalCharacters.innerHTML = "";
+  openingSongs.textContent = "";
+  endingSongs.innerHTML = "";
   trailerFrame.src = "";
   trailerContainer.classList.add("hidden");
 
@@ -142,10 +139,10 @@ async function openModal(id) {
       { label: "Rating", value: data.rating || "Unknown" },
     ];
 
-    modalInfoList.innerHTML = info
-      .map((i) => `<li><span class="font-semibold text-blue-400">${i.label}:</span> ${i.value}</li>`)
-      .join("");
+    modalInfoList.innerHTML = info.map((i) => `
+      <li><span class="font-semibold text-blue-400">${i.label}:</span> ${i.value}</li>`).join("");
 
+    // Karakter
     characters.slice(0, 6).forEach((char) => {
       const div = document.createElement("div");
       div.className = "flex flex-col items-center";
@@ -154,7 +151,32 @@ async function openModal(id) {
         <span class="text-xs">${char.character.name}</span>`;
       modalCharacters.appendChild(div);
     });
+    
+// Lagu Opening
+const openings = data.theme?.openings || [];
+openingSongs.innerHTML = openings.length
+  ? openings.map(song => {
+      const query = encodeURIComponent(`${data.title} ${song}`);
+      return `<a href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener noreferrer"
+          class="bg-blue-600 hover:bg-blue-700 transition text-white text-sm text-center px-3 py-2 rounded-md mb-2 shadow block">
+          🎵 Tonton Opening
+        </a>`;
+    }).join("")
+  : `<p class="text-slate-400 text-sm">Gak ada lagu opening.</p>`;
 
+// Lagu Ending
+const endings = data.theme?.endings || [];
+endingSongs.innerHTML = endings.length
+  ? endings.map(song => {
+      const query = encodeURIComponent(`${data.title} ${song}`);
+      return `<a href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener noreferrer"
+          class="bg-pink-600 hover:bg-pink-700 transition text-white text-sm text-center px-3 py-2 rounded-md mb-2 shadow block">
+          🎶 Tonton Ending
+        </a>`;
+    }).join("")
+  : `<p class="text-slate-400 text-sm">Gak ada lagu ending.</p>`;
+  
+    // Trailer
     if (data.trailer?.embed_url) {
       trailerFrame.src = data.trailer.embed_url + "?autoplay=0&mute=0";
       trailerContainer.classList.remove("hidden");
