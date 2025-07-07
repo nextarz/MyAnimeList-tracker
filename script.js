@@ -102,75 +102,65 @@ airingContainer.innerHTML = <p class="text-red-500 text-center">Failed to load a
 }
 
 async function openModal(id) {
-infoModal.showModal();
-modalTitle.textContent = "Loading...";
-modalDesc.textContent = "";
-modalInfoList.innerHTML = "";
-modalRating.textContent = "";
-modalCharacters.innerHTML = "";
-openingSongs.textContent = "";
-endingSongs.innerHTML = "";
-trailerFrame.src = "";
-trailerContainer.classList.add("hidden");
+  infoModal.showModal();
+  window.scrollTo({ top: 0, behavior: 'smooth' }); // <== ini buat scroll ke atas
+  modalTitle.textContent = "Loading...";
+  modalDesc.textContent = "";
+  modalInfoList.innerHTML = "";
+  modalRating.textContent = "";
+  modalCharacters.innerHTML = "";
+  trailerFrame.src = "";
+  trailerContainer.classList.add("hidden");
 
-try {
-const [animeRes, charsRes] = await Promise.all([
-fetch(${apiBase}/anime/${id}/full),
-fetch(${apiBase}/anime/${id}/characters),
-]);
+  try {
+    const [animeRes, charsRes] = await Promise.all([
+      fetch(`${apiBase}/anime/${id}/full`),
+      fetch(`${apiBase}/anime/${id}/characters`)
+    ]);
 
-const { data } = await animeRes.json();
-const { data: characters } = await charsRes.json();
+    const { data } = await animeRes.json();
+    const { data: characters } = await charsRes.json();
 
-modalTitle.textContent = data.title;
-modalDesc.textContent = data.synopsis || "No synopsis available.";
-modalRating.textContent = data.score ? ⭐ Rating: ${data.score} : "";
+    modalTitle.textContent = data.title;
+    modalDesc.textContent = data.synopsis || "No synopsis available.";
+    modalRating.textContent = data.score ? `⭐ Rating: ${data.score}` : "";
 
-const info = [
-{ label: "Episodes", value: data.episodes ?? "Unknown" },
-{ label: "Status", value: data.status ?? "Unknown" },
-{ label: "Aired", value: data.aired.string ?? "Unknown" },
-{ label: "Broadcast", value: data.broadcast?.string ?? "Unknown" },
-{ label: "Studios", value: data.studios.map((s) => s.name).join(", ") || "Unknown" },
-{ label: "Genres", value: data.genres.map((g) => g.name).join(", ") || "Unknown" },
-{ label: "Themes", value: data.themes.map((t) => t.name).join(", ") || "Unknown" },
-{ label: "Source", value: data.source || "Unknown" },
-{ label: "Duration", value: data.duration || "Unknown" },
-{ label: "Rating", value: data.rating || "Unknown" },
-];
+    const info = [
+      { label: "Episodes", value: data.episodes ?? "Unknown" },
+      { label: "Status", value: data.status ?? "Unknown" },
+      { label: "Aired", value: data.aired.string ?? "Unknown" },
+      { label: "Broadcast", value: data.broadcast?.string ?? "Unknown" },
+      { label: "Studios", value: data.studios.map((s) => s.name).join(", ") || "Unknown" },
+      { label: "Genres", value: data.genres.map((g) => g.name).join(", ") || "Unknown" },
+      { label: "Themes", value: data.themes.map((t) => t.name).join(", ") || "Unknown" },
+      { label: "Source", value: data.source || "Unknown" },
+      { label: "Duration", value: data.duration || "Unknown" },
+      { label: "Rating", value: data.rating || "Unknown" }
+    ];
+    modalInfoList.innerHTML = info.map((i) => `<li><span class="font-semibold text-blue-400">${i.label}:</span> ${i.value}</li>`).join("");
 
-modalInfoList.innerHTML = info.map((i) => `
+    // Fix karakter
+    if (Array.isArray(characters)) {
+      characters.slice(0, 6).forEach((char) => {
+        const div = document.createElement("div");
+        div.className = "flex flex-col items-center";
+        div.innerHTML = `
+          <img src="${char.character.images.jpg.image_url}" alt="${char.character.name}" class="w-16 h-20 rounded shadow border border-gray-600 mb-1 object-cover" />
+          <span class="text-xs">${char.character.name}</span>`;
+        modalCharacters.appendChild(div);
+      });
+    }
 
-  <li><span class="font-semibold text-blue-400">${i.label}:</span> ${i.value}</li>`).join("");    // Karakter
-characters.slice(0, 6).forEach((char) => {
-const div = document.createElement("div");
-div.className = "flex flex-col items-center";
-div.innerHTML =      <img src="${char.character.images.jpg.image_url}" alt="${char.character.name}" class="w-16 h-20 rounded shadow border border-gray-600 mb-1 object-cover" />     <span class="text-xs">${char.character.name}</span>;
-modalCharacters.appendChild(div);
-});
-
-// Lagu Opening
-const openings = data.theme?.openings || [];
-openingSongs.innerHTML = openings.length
-? openings.map(song =>   <div class="bg-slate-700 px-3 py-2 rounded-md mb-2 border border-slate-600 shadow">   <span class="text-sm text-slate-200">${song}</span>   </div>  ).join("")
-: <p class="text-slate-400 text-sm">No opening songs listed.</p>;
-
-// Lagu Ending
-const endings = data.theme?.endings || [];
-endingSongs.innerHTML = endings.length
-? endings.map(song =>   <div class="bg-slate-700 px-3 py-2 rounded-md mb-2 border border-slate-600 shadow">   <span class="text-sm text-slate-200">${song}</span>   </div>  ).join("")
-: <p class="text-slate-400 text-sm">No ending songs listed.</p>;
-
-// Trailer
-if (data.trailer?.embed_url) {
-trailerFrame.src = data.trailer.embed_url + "?autoplay=0&mute=0";
-trailerContainer.classList.remove("hidden");
-}
-
-} catch (err) {
-modalTitle.textContent = "Error";
-modalDesc.textContent = "Failed to load anime detail.";
-}
+    // Trailer
+    if (data.trailer?.embed_url) {
+      trailerFrame.src = data.trailer.embed_url + "?autoplay=0&mute=0";
+      trailerContainer.classList.remove("hidden");
+    }
+  } catch (err) {
+    modalTitle.textContent = "Error";
+    modalDesc.textContent = "Failed to load anime detail.";
+    console.error(err);
+  }
 }
 
 searchForm.addEventListener("submit", (e) => {
@@ -183,6 +173,3 @@ queryInput.focus();
 fetchAiringAnime();
 document.getElementById("year").textContent = new Date().getFullYear();
 };
-
-Tolong buatkan tampilan ui/ux lagu opening/ending nya lebih rapih kek langsung ke YouTube. Lebih elegan gak usah ada judul lagu nya jdi pas pencet langsung ke yt
-
