@@ -1,4 +1,4 @@
->  
+
 const apiBase = "https://api.jikan.moe/v4";
 
 const searchForm = document.getElementById("searchForm");
