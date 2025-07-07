@@ -108,8 +108,6 @@ async function openModal(id) {
   modalInfoList.innerHTML = "";
   modalRating.textContent = "";
   modalCharacters.innerHTML = "";
-  openingSongs.textContent = "";
-  endingSongs.innerHTML = "";
   trailerFrame.src = "";
   trailerContainer.classList.add("hidden");
 
