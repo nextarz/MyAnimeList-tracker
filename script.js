@@ -152,10 +152,26 @@ async function openModal(id) {
       modalCharacters.appendChild(div);
     });
 
-    // Lagu
-    openingSongs.textContent = data.theme?.openings?.[0] || "N/A";
-    endingSongs.innerHTML = (data.theme?.endings || []).map(song => `<li>${song}</li>`).join("") || "<li>N/A</li>";
+// Lagu Opening
+const openings = data.theme?.openings || [];
+openingSongs.innerHTML = openings.length
+  ? openings.map(song => `
+      <div class="bg-slate-700 px-3 py-2 rounded-md mb-2 border border-slate-600 shadow">
+        <span class="text-sm text-slate-200">${song}</span>
+      </div>
+    `).join("")
+  : `<p class="text-slate-400 text-sm">No opening songs listed.</p>`;
 
+// Lagu Ending
+const endings = data.theme?.endings || [];
+endingSongs.innerHTML = endings.length
+  ? endings.map(song => `
+      <div class="bg-slate-700 px-3 py-2 rounded-md mb-2 border border-slate-600 shadow">
+        <span class="text-sm text-slate-200">${song}</span>
+      </div>
+    `).join("")
+  : `<p class="text-slate-400 text-sm">No ending songs listed.</p>`;
+  
     // Trailer
     if (data.trailer?.embed_url) {
       trailerFrame.src = data.trailer.embed_url + "?autoplay=0&mute=0";
