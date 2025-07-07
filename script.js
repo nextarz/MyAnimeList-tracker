@@ -14,24 +14,28 @@ const trailerContainer = document.getElementById('modalTrailer');
 const trailerFrame = document.getElementById('trailerFrame');
 const closeModalBtn = document.getElementById('closeModalBtn');
 
-// Update footer year
+// Footer tahun otomatis
 document.getElementById('year').textContent = new Date().getFullYear();
 
-// Fetch popular airing anime
+// Fetch popular airing anime (tanpa duplikat)
 async function fetchAiringAnime() {
   try {
     const res = await fetch(`${apiBase}/top/anime?filter=airing`);
     const { data } = await res.json();
     airingContainer.innerHTML = "";
+    const unique = new Set();
     data.forEach(anime => {
-      airingContainer.appendChild(createAnimeCard(anime));
+      if (!unique.has(anime.mal_id)) {
+        unique.add(anime.mal_id);
+        airingContainer.appendChild(createAnimeCard(anime));
+      }
     });
   } catch (err) {
     airingContainer.innerHTML = `<p class="text-red-500 text-sm text-center">Failed to load airing anime.</p>`;
   }
 }
 
-// Fetch search results
+// Fetch anime search results (tanpa duplikat)
 async function fetchAnime(query) {
   if (!query.trim()) {
     resultsContainer.innerHTML = `<p class="text-center text-slate-400 mt-10">Please enter an anime name to search.</p>`;
@@ -46,8 +50,12 @@ async function fetchAnime(query) {
       return;
     }
     resultsContainer.innerHTML = "";
+    const unique = new Set();
     data.forEach(anime => {
-      resultsContainer.appendChild(createAnimeCard(anime));
+      if (!unique.has(anime.mal_id)) {
+        unique.add(anime.mal_id);
+        resultsContainer.appendChild(createAnimeCard(anime));
+      }
     });
   } catch (err) {
     resultsContainer.innerHTML = `<p class="text-center text-red-500 mt-10">Failed to fetch data. Please try again.</p>`;
@@ -105,7 +113,7 @@ function formatDate(dateStr) {
   return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-// Open modal with anime info
+// Open modal info
 async function openModal(id) {
   modalTitle.textContent = "Loading details...";
   modalDesc.textContent = "";
@@ -141,7 +149,7 @@ async function openModal(id) {
 
     modalRating.textContent = data.score ? `⭐ Rating: ${data.score}` : "";
 
-    // Trailer
+    // Show trailer if available
     if (data.trailer?.embed_url) {
       trailerContainer.classList.remove("hidden");
       trailerFrame.src = data.trailer.embed_url;
@@ -164,7 +172,7 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-// Form submit
+// Search handler
 searchForm.addEventListener('submit', (e) => {
   e.preventDefault();
   fetchAnime(queryInput.value);
