@@ -197,12 +197,3 @@ window.onload = () => {
 
 // Set dynamic year in footer
 document.getElementById('year').textContent = new Date().getFullYear();
-
-// Trailer show/hide logic
-trailerContainer.classList.add("hidden");
-trailerFrame.src = "";
-
-if (data.trailer?.embed_url) {
-  trailerContainer.classList.remove("hidden");
-  trailerFrame.src = data.trailer.embed_url;
-}
