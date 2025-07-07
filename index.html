@@ -34,7 +34,15 @@
 
   <!-- Search Results -->
   <main id="resultsContainer" class="w-full max-w-md flex flex-col gap-4 mb-10"></main>
-
+  
+<div class="flex justify-between items-center mb-3">
+  <h2 class="text-xl font-semibold text-blue-400">📺 Now Airing</h2>
+  <select id="airingSort" class="bg-slate-800 text-white text-sm rounded-md px-2 py-1 border border-slate-600">
+    <option value="popularity">🔥 Popular</option>
+    <option value="score">⭐ Highest Score</option>
+    <option value="date">📅 Newest</option>
+  </select>
+</div>
   <!-- Airing Section -->
   <section id="airingSection" class="w-full max-w-md">
     <h2 class="text-xl font-bold mb-4">🔥 Currently Airing</h2>
