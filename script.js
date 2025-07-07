@@ -151,26 +151,30 @@ async function openModal(id) {
         <span class="text-xs">${char.character.name}</span>`;
       modalCharacters.appendChild(div);
     });
-
+    
 // Lagu Opening
 const openings = data.theme?.openings || [];
 openingSongs.innerHTML = openings.length
-  ? openings.map(song => `
-      <div class="bg-slate-700 px-3 py-2 rounded-md mb-2 border border-slate-600 shadow">
-        <span class="text-sm text-slate-200">${song}</span>
-      </div>
-    `).join("")
-  : `<p class="text-slate-400 text-sm">No opening songs listed.</p>`;
+  ? openings.map(song => {
+      const query = encodeURIComponent(`${data.title} ${song}`);
+      return `<a href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener noreferrer"
+          class="bg-blue-600 hover:bg-blue-700 transition text-white text-sm text-center px-3 py-2 rounded-md mb-2 shadow block">
+          🎵 Tonton Opening
+        </a>`;
+    }).join("")
+  : `<p class="text-slate-400 text-sm">Gak ada lagu opening.</p>`;
 
 // Lagu Ending
 const endings = data.theme?.endings || [];
 endingSongs.innerHTML = endings.length
-  ? endings.map(song => `
-      <div class="bg-slate-700 px-3 py-2 rounded-md mb-2 border border-slate-600 shadow">
-        <span class="text-sm text-slate-200">${song}</span>
-      </div>
-    `).join("")
-  : `<p class="text-slate-400 text-sm">No ending songs listed.</p>`;
+  ? endings.map(song => {
+      const query = encodeURIComponent(`${data.title} ${song}`);
+      return `<a href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener noreferrer"
+          class="bg-pink-600 hover:bg-pink-700 transition text-white text-sm text-center px-3 py-2 rounded-md mb-2 shadow block">
+          🎶 Tonton Ending
+        </a>`;
+    }).join("")
+  : `<p class="text-slate-400 text-sm">Gak ada lagu ending.</p>`;
   
     // Trailer
     if (data.trailer?.embed_url) {
