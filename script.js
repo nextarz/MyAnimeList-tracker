@@ -1,96 +1,73 @@
 const apiBase = "https://api.jikan.moe/v4";
 
-const searchForm = document.getElementById("searchForm");
-const queryInput = document.getElementById("queryInput");
-const resultsContainer = document.getElementById("resultsContainer");
-const airingContainer = document.getElementById("airingContainer");
+const searchForm = document.getElementById('searchForm');
+const queryInput = document.getElementById('queryInput');
+const resultsContainer = document.getElementById('resultsContainer');
+const airingContainer = document.getElementById('airingContainer');
+const infoModal = document.getElementById('infoModal');
+const modalTitle = document.getElementById('modalTitle');
+const modalDesc = document.getElementById('modalDesc');
+const modalInfoList = document.getElementById('modalInfoList');
+const modalRating = document.getElementById('modalRating');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const trailerContainer = document.getElementById('trailerContainer');
+const trailerFrame = document.getElementById('trailerFrame');
+const favButton = document.getElementById('favButton');
 
-const infoModal = document.getElementById("infoModal");
-const modalTitle = document.getElementById("modalTitle");
-const modalDesc = document.getElementById("modalDesc");
-const modalInfoList = document.getElementById("modalInfoList");
-const modalRating = document.getElementById("modalRating");
-const closeModalBtn = document.getElementById("closeModalBtn");
+let currentAnime = null;
 
-const trailerContainer = document.getElementById("trailerContainer");
-const trailerFrame = document.getElementById("trailerFrame");
-
-const modalCharacters = document.querySelector("#modalCharacters .grid");
-const openingSongs = document.getElementById("openingSongs");
-const endingSongs = document.getElementById("endingSongs");
-
-closeModalBtn.addEventListener("click", closeModal);
-window.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && infoModal.open) closeModal();
-});
+// Modal
+closeModalBtn.addEventListener('click', closeModal);
+window.addEventListener('keydown', e => e.key === 'Escape' && infoModal.close());
 
 function closeModal() {
-  trailerFrame.src = "";
+  trailerFrame.src = '';
   trailerContainer.classList.add("hidden");
   infoModal.close();
-  searchForm.querySelector('button[type="submit"]').focus();
 }
 
 function createAnimeCard(anime) {
-  const div = document.createElement("article");
-  div.className = "bg-slate-800 rounded-md flex gap-4 p-3 hover:bg-slate-700 cursor-pointer shadow";
-  div.tabIndex = 0;
-
-  const img = document.createElement("img");
-  img.src = anime.images.jpg.image_url;
-  img.alt = anime.title;
-  img.className = "w-20 h-28 rounded-md object-cover border border-gray-600";
-  img.onerror = () => {
-    img.src = "https://via.placeholder.com/150x200?text=No+Image";
-  };
-
-  const info = document.createElement("div");
-  info.className = "flex flex-col justify-between";
-
-  const title = document.createElement("h3");
-  title.className = "font-semibold text-lg";
-  title.textContent = anime.title;
-
-  const synopsis = document.createElement("p");
-  synopsis.className = "line-clamp-4 text-sm text-slate-300";
-  synopsis.textContent = anime.synopsis || "No synopsis available.";
-
-  const score = document.createElement("p");
-  score.className = "text-slate-400 text-sm";
-  score.textContent = `Score: ${anime.score ?? "N/A"}`;
-
-  info.append(title, synopsis, score);
-  div.append(img, info);
-  div.addEventListener("click", () => openModal(anime.mal_id));
+  const div = document.createElement('article');
+  div.className = 'bg-slate-800 p-3 rounded-md shadow hover:bg-slate-700 cursor-pointer flex gap-4';
+  div.innerHTML = `
+    <img src="${anime.images.jpg.image_url}" alt="${anime.title}" class="w-20 h-28 object-cover rounded-md border border-gray-600" />
+    <div class="flex flex-col justify-between">
+      <h3 class="text-lg font-semibold">${anime.title}</h3>
+      <p class="text-sm text-slate-300 line-clamp-3">${anime.synopsis || 'No synopsis'}</p>
+      <p class="text-sm text-slate-400">Score: ${anime.score ?? 'N/A'}</p>
+    </div>
+  `;
+  div.onclick = () => openModal(anime.mal_id);
   return div;
 }
 
 async function fetchAnime(query) {
-  resultsContainer.innerHTML = `<p class="text-center text-slate-400 mt-10">Loading...</p>`;
+  resultsContainer.innerHTML = `<p class="text-center text-slate-400">Loading...</p>`;
   try {
     const res = await fetch(`${apiBase}/anime?q=${encodeURIComponent(query)}&limit=20`);
     const { data } = await res.json();
+    resultsContainer.innerHTML = '';
     const seen = new Set();
-    resultsContainer.innerHTML = "";
-    data.forEach((anime) => {
+    data.forEach(anime => {
       if (!seen.has(anime.mal_id)) {
         seen.add(anime.mal_id);
         resultsContainer.appendChild(createAnimeCard(anime));
       }
     });
   } catch {
-    resultsContainer.innerHTML = `<p class="text-red-500 text-center">Failed to fetch anime.</p>`;
+    resultsContainer.innerHTML = `<p class="text-red-500 text-center">Failed to fetch.</p>`;
   }
 }
 
 async function fetchAiringAnime() {
-  airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading airing anime...</p>`;
+  airingContainer.innerHTML = `<p class="text-center text-slate-400">Loading...</p>`;
   try {
     const res = await fetch(`${apiBase}/seasons/now`);
     const { data } = await res.json();
-    airingContainer.innerHTML = "";
+    airingContainer.innerHTML = '';
+    data.sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0));
     const seen = new Set();
-    data.forEach((anime) => {
+    data.forEach(anime => {
       if (!seen.has(anime.mal_id)) {
         seen.add(anime.mal_id);
         airingContainer.appendChild(createAnimeCard(anime));
@@ -102,88 +79,55 @@ async function fetchAiringAnime() {
 }
 
 async function openModal(id) {
-  infoModal.showModal();
   modalTitle.textContent = "Loading...";
   modalDesc.textContent = "";
   modalInfoList.innerHTML = "";
-  modalRating.textContent = "";
-  modalCharacters.innerHTML = "";
-  openingSongs.textContent = "";
-  endingSongs.innerHTML = "";
-  trailerFrame.src = "";
+  trailerFrame.src = '';
   trailerContainer.classList.add("hidden");
+  infoModal.showModal();
 
   try {
-    const [animeRes, charsRes] = await Promise.all([
-      fetch(`${apiBase}/anime/${id}/full`),
-      fetch(`${apiBase}/anime/${id}/characters`),
-    ]);
+    const res = await fetch(`${apiBase}/anime/${id}/full`);
+    const { data } = await res.json();
 
-    const { data } = await animeRes.json();
-    const { data: characters } = await charsRes.json();
+    currentAnime = data;
 
     modalTitle.textContent = data.title;
-    modalDesc.textContent = data.synopsis || "No synopsis available.";
+    modalDesc.textContent = data.synopsis || "No synopsis.";
     modalRating.textContent = data.score ? `⭐ Rating: ${data.score}` : "";
 
-    const info = [
-      { label: "Episodes", value: data.episodes ?? "Unknown" },
-      { label: "Status", value: data.status ?? "Unknown" },
-      { label: "Aired", value: data.aired.string ?? "Unknown" },
-      { label: "Broadcast", value: data.broadcast?.string ?? "Unknown" },
-      { label: "Studios", value: data.studios.map((s) => s.name).join(", ") || "Unknown" },
-      { label: "Genres", value: data.genres.map((g) => g.name).join(", ") || "Unknown" },
-      { label: "Themes", value: data.themes.map((t) => t.name).join(", ") || "Unknown" },
-      { label: "Source", value: data.source || "Unknown" },
-      { label: "Duration", value: data.duration || "Unknown" },
-      { label: "Rating", value: data.rating || "Unknown" },
+    const rows = [
+      { label: 'Episodes', value: data.episodes ?? 'Unknown' },
+      { label: 'Status', value: data.status ?? 'Unknown' },
+      { label: 'Aired', value: data.aired.string ?? 'Unknown' },
+      { label: 'Studios', value: data.studios.map(s => s.name).join(', ') || 'Unknown' },
+      { label: 'Genres', value: data.genres.map(g => g.name).join(', ') || 'Unknown' },
     ];
+    modalInfoList.innerHTML = rows.map(r => `<li><span class="font-semibold text-blue-400">${r.label}:</span> ${r.value}</li>`).join('');
 
-    modalInfoList.innerHTML = info.map((i) => `
-      <li><span class="font-semibold text-blue-400">${i.label}:</span> ${i.value}</li>`).join("");
-
-    // Karakter
-    characters.slice(0, 6).forEach((char) => {
-      const div = document.createElement("div");
-      div.className = "flex flex-col items-center";
-      div.innerHTML = `
-        <img src="${char.character.images.jpg.image_url}" alt="${char.character.name}" class="w-16 h-20 rounded shadow border border-gray-600 mb-1 object-cover" />
-        <span class="text-xs">${char.character.name}</span>`;
-      modalCharacters.appendChild(div);
-    });
-
-// Lagu Opening
-const openings = data.theme?.openings || [];
-openingSongs.innerHTML = openings.length
-  ? openings.map(song => `
-      <div class="bg-slate-700 px-3 py-2 rounded-md mb-2 border border-slate-600 shadow">
-        <span class="text-sm text-slate-200">${song}</span>
-      </div>
-    `).join("")
-  : `<p class="text-slate-400 text-sm">No opening songs listed.</p>`;
-
-// Lagu Ending
-const endings = data.theme?.endings || [];
-endingSongs.innerHTML = endings.length
-  ? endings.map(song => `
-      <div class="bg-slate-700 px-3 py-2 rounded-md mb-2 border border-slate-600 shadow">
-        <span class="text-sm text-slate-200">${song}</span>
-      </div>
-    `).join("")
-  : `<p class="text-slate-400 text-sm">No ending songs listed.</p>`;
-  
-    // Trailer
     if (data.trailer?.embed_url) {
-      trailerFrame.src = data.trailer.embed_url + "?autoplay=0&mute=0";
+      trailerFrame.src = data.trailer.embed_url + "?autoplay=0";
       trailerContainer.classList.remove("hidden");
     }
-  } catch (err) {
+  } catch {
     modalTitle.textContent = "Error";
-    modalDesc.textContent = "Failed to load anime detail.";
+    modalDesc.textContent = "Failed to load detail.";
   }
 }
 
-searchForm.addEventListener("submit", (e) => {
+favButton.addEventListener('click', () => {
+  if (!currentAnime) return;
+  const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+  if (!favs.some(a => a.mal_id === currentAnime.mal_id)) {
+    favs.push({ mal_id: currentAnime.mal_id, title: currentAnime.title });
+    localStorage.setItem("favorites", JSON.stringify(favs));
+    alert("✅ Anime ditambahkan ke favorit!");
+  } else {
+    alert("❗ Anime sudah ada di favorit.");
+  }
+});
+
+searchForm.addEventListener('submit', e => {
   e.preventDefault();
   fetchAnime(queryInput.value.trim());
 });
@@ -191,5 +135,5 @@ searchForm.addEventListener("submit", (e) => {
 window.onload = () => {
   queryInput.focus();
   fetchAiringAnime();
-  document.getElementById("year").textContent = new Date().getFullYear();
+  document.getElementById('year').textContent = new Date().getFullYear();
 };
