@@ -16,8 +16,6 @@ const trailerContainer = document.getElementById("trailerContainer");
 const trailerFrame = document.getElementById("trailerFrame");
 
 const modalCharacters = document.querySelector("#modalCharacters .grid");
-const openingSongs = document.getElementById("openingSongs");
-const endingSongs = document.getElementById("endingSongs");
 
 closeModalBtn.addEventListener("click", closeModal);
 window.addEventListener("keydown", (e) => {
