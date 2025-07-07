@@ -1,3 +1,4 @@
+// Updated anime_tracker_script.js with Trailer support
 const apiBase = "https://api.jikan.moe/v4";
 
 const searchForm = document.getElementById('searchForm');
@@ -11,7 +12,26 @@ const modalInfoList = document.getElementById('modalInfoList');
 const modalRating = document.getElementById('modalRating');
 const closeModalBtn = document.getElementById('closeModalBtn');
 
-// Modal close & esc
+// Optional trailer container
+let trailerFrame;
+let trailerWrapper;
+
+function addTrailerElements() {
+  if (!trailerFrame) {
+    trailerWrapper = document.createElement('div');
+    trailerWrapper.className = "aspect-w-16 aspect-h-9 mb-4";
+
+    trailerFrame = document.createElement('iframe');
+    trailerFrame.id = 'modalTrailer';
+    trailerFrame.className = 'w-full h-60 rounded border border-blue-500 shadow-lg';
+    trailerFrame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    trailerFrame.allowFullscreen = true;
+
+    trailerWrapper.appendChild(trailerFrame);
+    infoModal.insertBefore(trailerWrapper, modalDesc);
+  }
+}
+
 closeModalBtn.addEventListener('click', () => {
   infoModal.close();
   searchForm.querySelector('button[type="submit"]').focus();
@@ -23,14 +43,12 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-// Format date
 function formatDate(dateStr) {
   if (!dateStr) return "Unknown";
   const d = new Date(dateStr);
   return isNaN(d) ? "Unknown" : d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-// Anime card
 function createAnimeCard(anime) {
   const div = document.createElement('article');
   div.setAttribute('tabindex', '0');
@@ -41,7 +59,7 @@ function createAnimeCard(anime) {
   img.alt = `Cover image for ${anime.title}`;
   img.className = "w-20 h-28 rounded-md flex-shrink-0 object-cover border border-gray-600";
   img.onerror = function () {
-    this.src = 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/647f8a56-45bb-416e-9ddd-10d7c0000b19.png';
+    this.src = 'https://via.placeholder.com/150x210?text=No+Image';
   };
 
   const info = document.createElement('div');
@@ -73,7 +91,6 @@ function createAnimeCard(anime) {
   return div;
 }
 
-// Fetch search
 async function fetchAnime(query) {
   if (!query.trim()) {
     resultsContainer.innerHTML = `<p class="text-center text-slate-400 mt-10">Please enter an anime name to search.</p>`;
@@ -99,7 +116,6 @@ async function fetchAnime(query) {
   }
 }
 
-// Fetch all airing anime
 async function fetchAllAiringAnime() {
   airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading airing anime...</p>`;
   let page = 1;
@@ -122,7 +138,7 @@ async function fetchAllAiringAnime() {
 
       hasNext = json.pagination?.has_next_page;
       page++;
-      await new Promise(resolve => setTimeout(resolve, 400)); // delay buat hindari rate-limit
+      await new Promise(resolve => setTimeout(resolve, 400));
     }
 
     if (seen.size === 0) {
@@ -134,12 +150,12 @@ async function fetchAllAiringAnime() {
   }
 }
 
-// Modal detail
 async function openModal(id) {
   modalTitle.textContent = "Loading details...";
   modalDesc.textContent = "";
   modalInfoList.innerHTML = "";
   modalRating.textContent = "";
+  if (trailerFrame) trailerFrame.src = "";
   infoModal.showModal();
 
   try {
@@ -174,8 +190,14 @@ async function openModal(id) {
     });
 
     modalRating.textContent = data.score ? `⭐ Rating: ${data.score}` : "";
-    infoModal.scrollTo({ top: 0, behavior: 'smooth' });
 
+    // Trailer
+    if (data.trailer?.embed_url) {
+      addTrailerElements();
+      trailerFrame.src = data.trailer.embed_url;
+    }
+
+    infoModal.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (err) {
     modalTitle.textContent = "Failed to load details";
     modalDesc.textContent = "Unable to retrieve info. Please try again.";
@@ -183,17 +205,14 @@ async function openModal(id) {
   }
 }
 
-// Search submit
 searchForm.addEventListener('submit', e => {
   e.preventDefault();
   fetchAnime(queryInput.value.trim());
 });
 
-// Init
 window.onload = () => {
   queryInput.focus();
   fetchAllAiringAnime();
 };
 
-// Set dynamic year in footer
 document.getElementById('year').textContent = new Date().getFullYear();
