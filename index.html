@@ -42,12 +42,7 @@
   </section>
 
   <!-- Modal -->
-  <dialog id="infoModal" class="bg-slate-800 teks-white rounded-lg p-5 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl border border-blue-600"> <div id="modalTrailer" class="hidden mb-4">
-  <h3 class="text-base font-semibold text-white mb-2">🎬 Trailer</h3>
-  <div class="w-full aspect-video rounded-md overflow-hidden border border-slate-600">
-    <iframe id="trailerFrame" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
-  </div>
-</div>
+  <dialog id="infoModal" class="bg-slate-800 teks-white rounded-lg p-5 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl border border-blue-600"> 
     <button id="closeModalBtn" class="absolute top-3 right-3 text-gray-400 hover:text-white focus:outline-none">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -57,6 +52,12 @@
     <div id="modalDesc" class="text-sm leading-relaxed mb-4 whitespace-pre-wrap"></div>
     <ul id="modalInfoList" class="text-sm space-y-1 mb-4"></ul>
     <div id="modalRating" class="text-yellow-400 font-semibold text-lg"></div>
+    <div id="modalTrailer" class="hidden mb-4">
+  <h3 class="text-base font-semibold text-white mb-2">🎬 Trailer</h3>
+  <div class="w-full aspect-video rounded-md overflow-hidden border border-slate-600">
+    <iframe id="trailerFrame" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
+  </div>
+</div>
   </dialog>
   <!-- Sticky Footer -->
 <footer class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-700 text-center text-xs text-slate-400 py-2 z-50">
