@@ -4,7 +4,6 @@ const searchForm = document.getElementById('searchForm');
 const queryInput = document.getElementById('queryInput');
 const resultsContainer = document.getElementById('resultsContainer');
 const airingContainer = document.getElementById('airingContainer');
-const airingSort = document.getElementById('airingSort');
 
 const infoModal = document.getElementById('infoModal');
 const modalTitle = document.getElementById('modalTitle');
@@ -15,35 +14,24 @@ const trailerContainer = document.getElementById('modalTrailer');
 const trailerFrame = document.getElementById('trailerFrame');
 const closeModalBtn = document.getElementById('closeModalBtn');
 
+// Update footer year
 document.getElementById('year').textContent = new Date().getFullYear();
 
-async function fetchAiringAnime(sortBy = "popularity") {
+// Fetch popular airing anime
+async function fetchAiringAnime() {
   try {
-    const res = await fetch(`${apiBase}/top/anime?filter=airing&limit=25`);
+    const res = await fetch(`${apiBase}/top/anime?filter=airing`);
     const { data } = await res.json();
     airingContainer.innerHTML = "";
-
-    let airingOnly = data.filter(anime => anime.status === "Currently Airing");
-
-    // Sorting logic
-    if (sortBy === "score") {
-      airingOnly.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
-    } else if (sortBy === "date") {
-      airingOnly.sort((a, b) => new Date(b.aired.from) - new Date(a.aired.from));
-    }
-
-    const unique = new Set();
-    airingOnly.forEach(anime => {
-      if (!unique.has(anime.mal_id)) {
-        unique.add(anime.mal_id);
-        airingContainer.appendChild(createAnimeCard(anime));
-      }
+    data.forEach(anime => {
+      airingContainer.appendChild(createAnimeCard(anime));
     });
   } catch (err) {
     airingContainer.innerHTML = `<p class="text-red-500 text-sm text-center">Failed to load airing anime.</p>`;
   }
 }
 
+// Fetch search results
 async function fetchAnime(query) {
   if (!query.trim()) {
     resultsContainer.innerHTML = `<p class="text-center text-slate-400 mt-10">Please enter an anime name to search.</p>`;
@@ -58,18 +46,15 @@ async function fetchAnime(query) {
       return;
     }
     resultsContainer.innerHTML = "";
-    const unique = new Set();
     data.forEach(anime => {
-      if (!unique.has(anime.mal_id)) {
-        unique.add(anime.mal_id);
-        resultsContainer.appendChild(createAnimeCard(anime));
-      }
+      resultsContainer.appendChild(createAnimeCard(anime));
     });
   } catch (err) {
     resultsContainer.innerHTML = `<p class="text-center text-red-500 mt-10">Failed to fetch data. Please try again.</p>`;
   }
 }
 
+// Create anime card
 function createAnimeCard(anime) {
   const card = document.createElement('article');
   card.className = 'bg-slate-800 rounded-md flex gap-4 p-3 hover:bg-slate-700 cursor-pointer shadow';
@@ -112,6 +97,7 @@ function createAnimeCard(anime) {
   return card;
 }
 
+// Format date
 function formatDate(dateStr) {
   if (!dateStr) return "Unknown";
   const d = new Date(dateStr);
@@ -119,6 +105,7 @@ function formatDate(dateStr) {
   return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+// Open modal with anime info
 async function openModal(id) {
   modalTitle.textContent = "Loading details...";
   modalDesc.textContent = "";
@@ -154,6 +141,7 @@ async function openModal(id) {
 
     modalRating.textContent = data.score ? `⭐ Rating: ${data.score}` : "";
 
+    // Trailer
     if (data.trailer?.embed_url) {
       trailerContainer.classList.remove("hidden");
       trailerFrame.src = data.trailer.embed_url;
@@ -164,6 +152,7 @@ async function openModal(id) {
   }
 }
 
+// Close modal
 closeModalBtn.addEventListener('click', () => {
   trailerFrame.src = "";
   infoModal.close();
@@ -175,17 +164,13 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
+// Form submit
 searchForm.addEventListener('submit', (e) => {
   e.preventDefault();
   fetchAnime(queryInput.value);
 });
 
-// 🔄 Ganti sorting
-airingSort.addEventListener('change', (e) => {
-  fetchAiringAnime(e.target.value);
-});
-
-// 🔃 Load awal
+// On load
 window.onload = () => {
   queryInput.focus();
   fetchAiringAnime();
