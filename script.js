@@ -85,34 +85,19 @@ async function fetchAnime(query) {
 
 async function fetchAiringAnime() {
   airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading airing anime...</p>`;
-  let page = 1;
-  let hasNext = true;
-  const seen = new Set();
-  airingContainer.innerHTML = "";
-
   try {
-    while (hasNext) {
-      const res = await fetch(`${apiBase}/seasons/now?page=${page}`);
-      const { data, pagination } = await res.json();
-
-      data.forEach(anime => {
-        if (!seen.has(anime.mal_id)) {
-          seen.add(anime.mal_id);
-          airingContainer.appendChild(createAnimeCard(anime));
-        }
-      });
-
-      hasNext = pagination.has_next_page;
-      page++;
-      await new Promise(resolve => setTimeout(resolve, 300)); // biar gak ke-rate-limit
-    }
-
-    if (seen.size === 0) {
-      airingContainer.innerHTML = `<p class="text-slate-400 text-center">No airing anime found.</p>`;
-    }
-  } catch (err) {
+    const res = await fetch(`${apiBase}/seasons/now`);
+    const { data } = await res.json();
+    airingContainer.innerHTML = "";
+    const seen = new Set();
+    data.forEach((anime) => {
+      if (!seen.has(anime.mal_id)) {
+        seen.add(anime.mal_id);
+        airingContainer.appendChild(createAnimeCard(anime));
+      }
+    });
+  } catch {
     airingContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load airing anime.</p>`;
-    console.error("Airing fetch error:", err);
   }
 }
 
@@ -123,7 +108,7 @@ async function openModal(id) {
   modalInfoList.innerHTML = "";
   modalRating.textContent = "";
   modalCharacters.innerHTML = "";
-  openingSongs.innerHTML = "";
+  openingSongs.textContent = "";
   endingSongs.innerHTML = "";
   trailerFrame.src = "";
   trailerContainer.classList.add("hidden");
@@ -154,9 +139,8 @@ async function openModal(id) {
       { label: "Rating", value: data.rating || "Unknown" },
     ];
 
-    modalInfoList.innerHTML = info.map((i) =>
-      `<li><span class="font-semibold text-blue-400">${i.label}:</span> ${i.value}</li>`
-    ).join("");
+    modalInfoList.innerHTML = info.map((i) => `
+      <li><span class="font-semibold text-blue-400">${i.label}:</span> ${i.value}</li>`).join("");
 
     // Karakter
     characters.slice(0, 6).forEach((char) => {
@@ -167,34 +151,36 @@ async function openModal(id) {
         <span class="text-xs">${char.character.name}</span>`;
       modalCharacters.appendChild(div);
     });
+    
+// Lagu Opening
+const openings = data.theme?.openings || [];
+openingSongs.innerHTML = openings.length
+  ? openings.map(song => {
+      const query = encodeURIComponent(`${data.title} ${song}`);
+      return `<a href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener noreferrer"
+          class="bg-blue-600 hover:bg-blue-700 transition text-white text-sm text-center px-3 py-2 rounded-md mb-2 shadow block">
+          🎵 Tonton Opening
+        </a>`;
+    }).join("")
+  : `<p class="text-slate-400 text-sm">Gak ada lagu opening.</p>`;
 
-    // Opening songs
-    const openings = data.theme?.openings || [];
-    openingSongs.innerHTML = openings.length
-      ? openings.map(song => {
-          const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(song)}`;
-          return `<a href="${url}" target="_blank" class="bg-slate-700 px-3 py-2 rounded-md border border-slate-600 shadow hover:bg-slate-600 transition text-sm text-slate-200">Lihat di YouTube</a>`;
-        }).join("")
-      : `<p class="text-slate-400 text-sm">No opening songs listed.</p>`;
-
-    // Ending songs
-    const endings = data.theme?.endings || [];
-    endingSongs.innerHTML = endings.length
-      ? endings.map(song => {
-          const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(song)}`;
-          return `<a href="${url}" target="_blank" class="bg-slate-700 px-3 py-2 rounded-md border border-slate-600 shadow hover:bg-slate-600 transition text-sm text-slate-200">Lihat di YouTube</a>`;
-        }).join("")
-      : `<p class="text-slate-400 text-sm">No ending songs listed.</p>`;
-
+// Lagu Ending
+const endings = data.theme?.endings || [];
+endingSongs.innerHTML = endings.length
+  ? endings.map(song => {
+      const query = encodeURIComponent(`${data.title} ${song}`);
+      return `<a href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener noreferrer"
+          class="bg-pink-600 hover:bg-pink-700 transition text-white text-sm text-center px-3 py-2 rounded-md mb-2 shadow block">
+          🎶 Tonton Ending
+        </a>`;
+    }).join("")
+  : `<p class="text-slate-400 text-sm">Gak ada lagu ending.</p>`;
+  
     // Trailer
     if (data.trailer?.embed_url) {
       trailerFrame.src = data.trailer.embed_url + "?autoplay=0&mute=0";
       trailerContainer.classList.remove("hidden");
     }
-
-    // ✅ Scroll to top of modal
-    infoModal.scrollTo({ top: 0, behavior: "smooth" });
-
   } catch (err) {
     modalTitle.textContent = "Error";
     modalDesc.textContent = "Failed to load anime detail.";
