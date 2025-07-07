@@ -16,8 +16,6 @@ const trailerContainer = document.getElementById("trailerContainer");
 const trailerFrame = document.getElementById("trailerFrame");
 
 const modalCharacters = document.querySelector("#modalCharacters .grid");
-const openingSongs = document.getElementById("openingSongs");
-const endingSongs = document.getElementById("endingSongs");
 
 closeModalBtn.addEventListener("click", closeModal);
 window.addEventListener("keydown", (e) => {
@@ -85,31 +83,45 @@ async function fetchAnime(query) {
 
 async function fetchAiringAnime() {
   airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading airing anime...</p>`;
+  const seen = new Set();
+  airingContainer.innerHTML = "";
+  let page = 1;
+  let hasNext = true;
+
   try {
-    const res = await fetch(`${apiBase}/seasons/now`);
-    const { data } = await res.json();
-    airingContainer.innerHTML = "";
-    const seen = new Set();
-    data.forEach((anime) => {
-      if (!seen.has(anime.mal_id)) {
-        seen.add(anime.mal_id);
-        airingContainer.appendChild(createAnimeCard(anime));
-      }
-    });
+    while (hasNext) {
+      const res = await fetch(`${apiBase}/seasons/now?page=${page}`);
+      const json = await res.json();
+      const { data, pagination } = json;
+
+      data.forEach((anime) => {
+        if (!seen.has(anime.mal_id)) {
+          seen.add(anime.mal_id);
+          airingContainer.appendChild(createAnimeCard(anime));
+        }
+      });
+
+      hasNext = pagination.has_next_page;
+      page++;
+      await new Promise((r) => setTimeout(r, 300)); // biar gak diban
+    }
+
+    if (seen.size === 0) {
+      airingContainer.innerHTML = `<p class="text-slate-400 text-center">No airing anime found.</p>`;
+    }
   } catch {
     airingContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load airing anime.</p>`;
   }
 }
 
 async function openModal(id) {
+  window.scrollTo({ top: 0, behavior: "smooth" });
   infoModal.showModal();
   modalTitle.textContent = "Loading...";
   modalDesc.textContent = "";
   modalInfoList.innerHTML = "";
   modalRating.textContent = "";
   modalCharacters.innerHTML = "";
-  openingSongs.textContent = "";
-  endingSongs.innerHTML = "";
   trailerFrame.src = "";
   trailerContainer.classList.add("hidden");
 
@@ -139,8 +151,9 @@ async function openModal(id) {
       { label: "Rating", value: data.rating || "Unknown" },
     ];
 
-    modalInfoList.innerHTML = info.map((i) => `
-      <li><span class="font-semibold text-blue-400">${i.label}:</span> ${i.value}</li>`).join("");
+    modalInfoList.innerHTML = info.map((i) =>
+      `<li><span class="font-semibold text-blue-400">${i.label}:</span> ${i.value}</li>`
+    ).join("");
 
     // Karakter
     characters.slice(0, 6).forEach((char) => {
@@ -151,7 +164,7 @@ async function openModal(id) {
         <span class="text-xs">${char.character.name}</span>`;
       modalCharacters.appendChild(div);
     });
-  
+
     // Trailer
     if (data.trailer?.embed_url) {
       trailerFrame.src = data.trailer.embed_url + "?autoplay=0&mute=0";
