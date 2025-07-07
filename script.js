@@ -13,22 +13,17 @@ const closeModalBtn = document.getElementById('closeModalBtn');
 const trailerContainer = document.getElementById('trailerContainer');
 const trailerFrame = document.getElementById('trailerFrame');
 
-// Modal close
+// Close modal
 closeModalBtn.addEventListener('click', closeModal);
-window.addEventListener('keydown', (e) => {
+window.addEventListener('keydown', e => {
   if (e.key === 'Escape' && infoModal.open) closeModal();
 });
 
 function closeModal() {
   trailerFrame.src = ''; // stop video
-  trailerContainer.classList.add("hidden");
+  trailerContainer.classList.add('hidden');
   infoModal.close();
   searchForm.querySelector('button[type="submit"]').focus();
-}
-
-function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  return isNaN(d) ? "Unknown" : d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 function createAnimeCard(anime) {
@@ -61,8 +56,8 @@ function createAnimeCard(anime) {
 
   info.append(title, synopsis, score);
   div.append(img, info);
-
   div.addEventListener('click', () => openModal(anime.mal_id));
+
   return div;
 }
 
@@ -117,12 +112,11 @@ async function openModal(id) {
     const { data } = await res.json();
 
     modalTitle.textContent = data.title;
-    modalDesc.textContent = data.synopsis || "No synopsis available.";
+    modalDesc.textContent = data.synopsis || "No synopsis.";
     modalRating.textContent = data.score ? `⭐ Rating: ${data.score}` : "";
 
     const info = [
       { label: 'Alternative Titles', value: `${data.title_english || '-'} / ${data.title_japanese || '-'}` },
-      { label: 'Synonyms', value: data.synonyms?.join(', ') || '-' },
       { label: 'Type', value: data.type ?? 'Unknown' },
       { label: 'Episodes', value: data.episodes ?? 'Unknown' },
       { label: 'Status', value: data.status ?? 'Unknown' },
@@ -130,29 +124,28 @@ async function openModal(id) {
       { label: 'Premiered', value: data.season ? `${data.season} ${data.year}` : 'Unknown' },
       { label: 'Broadcast', value: data.broadcast?.string ?? 'Unknown' },
       { label: 'Producers', value: data.producers.map(p => p.name).join(', ') || 'Unknown' },
-      { label: 'Licensors', value: data.licensors.map(l => l.name).join(', ') || 'Unknown' },
       { label: 'Studios', value: data.studios.map(s => s.name).join(', ') || 'Unknown' },
       { label: 'Source', value: data.source ?? 'Unknown' },
       { label: 'Genres', value: data.genres.map(g => g.name).join(', ') || 'Unknown' },
       { label: 'Themes', value: data.themes.map(t => t.name).join(', ') || 'Unknown' },
-      { label: 'Demographics', value: data.demographics.map(d => d.name).join(', ') || 'Unknown' },
       { label: 'Duration', value: data.duration ?? 'Unknown' },
       { label: 'Rating', value: data.rating ?? 'Unknown' },
     ];
 
-    modalInfoList.innerHTML = info
-      .map(i => `<li><span class="font-semibold text-blue-400">${i.label}:</span> ${i.value}</li>`)
-      .join('');
+    modalInfoList.innerHTML = info.map(i => `
+      <li><span class="font-semibold text-blue-400">${i.label}:</span> ${i.value}</li>
+    `).join('');
 
     if (data.trailer?.embed_url) {
-      trailerFrame.src = data.trailer.embed_url + "?autoplay=0&mute=1";
+      // Autoplay off + allow sound
+      trailerFrame.src = `${data.trailer.embed_url}?autoplay=0&mute=0`;
       trailerContainer.classList.remove("hidden");
     }
 
+    infoModal.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (err) {
     modalTitle.textContent = "Error";
     modalDesc.textContent = "Failed to load anime detail.";
-    console.error(err);
   }
 }
 
