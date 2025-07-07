@@ -7,75 +7,52 @@
     <script src="https://cdn.tailwindcss.com?plugins=line-clamp"></script>
     <link rel="stylesheet" href="style.css" />
   </head>
-  <body class="bg-slate-950 text-gray-100 min-h-screen flex flex-col items-center p-4 max-w-md mx-auto pb-20 selection:bg-blue-600 selection:text-white">
-    
+  <body class="bg-slate-950 text-gray-100 min-h-screen flex flex-col items-center p-4 max-w-md mx-auto pb-24 selection:bg-blue-600 selection:text-white">
+
     <!-- Header -->
     <header class="w-full max-w-md flex flex-col items-center mb-5">
-      <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-indigo-500 via-pink-500 to-rose-500 overflow-hidden flex items-center justify-center border-4 border-blue-600 mb-3 drop-shadow-lg">
-        <img src="image/logo.png" alt="Logo" class="w-full h-full object-cover" />
-      </div>
-      <h1 class="text-3xl font-extrabold tracking-tight select-none">Anime Tracker</h1>
+      <img src="image/logo.png" class="w-24 h-24 rounded-full mb-3 border-4 border-blue-600 object-cover" alt="Logo" />
+      <h1 class="text-3xl font-extrabold">Anime Tracker</h1>
     </header>
 
     <!-- Search -->
-    <form id="searchForm" class="flex w-full max-w-md gap-2 mb-6">
-      <input id="queryInput" type="search" placeholder="Search anime title..." required autocomplete="off"
-        class="flex-grow rounded-md border border-gray-700 bg-slate-800 px-4 py-3 placeholder:text-slate-400 text-white focus:outline-none focus:ring-2 focus:ring-blue-600" />
-      <button type="submit" class="bg-blue-600 rounded-md px-4 py-3 hover:bg-blue-700 transition">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M21 21l-4.35-4.35M16.65 16.65a7 7 0 10-9.9-9.9 7 7 0 009.9 9.9z" />
-        </svg>
+    <form id="searchForm" class="flex w-full gap-2 mb-6">
+      <input id="queryInput" type="search" placeholder="Search anime title..." required
+        class="flex-grow rounded-md border border-gray-700 bg-slate-800 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-600" />
+      <button type="submit" class="bg-blue-600 px-4 py-3 rounded hover:bg-blue-700">
+        🔍
       </button>
     </form>
 
     <!-- Search Results -->
-    <main id="resultsContainer" class="w-full max-w-md flex flex-col gap-4 mb-10"></main>
+    <main id="resultsContainer" class="w-full flex flex-col gap-4 mb-10"></main>
 
-    <!-- Airing Section -->
-    <section id="airingSection" class="w-full max-w-md">
-      <h2 class="text-xl font-bold mb-4">🔥 Currently Airing</h2>
+    <!-- Airing -->
+    <section id="airingSection" class="w-full">
+      <h2 class="text-xl font-bold mb-3">🔥 Currently Airing</h2>
       <div id="airingContainer" class="flex flex-col gap-4"></div>
     </section>
 
     <!-- Modal -->
-    <dialog id="infoModal" class="bg-slate-800 text-white rounded-lg p-5 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl border border-blue-600 relative">
-      <button id="closeModalBtn" class="absolute top-3 right-3 text-gray-400 hover:text-white focus:outline-none">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+    <dialog id="infoModal" class="bg-slate-800 text-white rounded-lg p-5 w-full max-w-lg border border-blue-600">
+      <button id="closeModalBtn" class="absolute top-3 right-3 text-white">✖</button>
       <h2 id="modalTitle" class="text-2xl font-bold mb-4"></h2>
-      <div id="modalDesc" class="text-sm leading-relaxed mb-4 whitespace-pre-wrap"></div>
+      <p id="modalDesc" class="text-sm mb-4 whitespace-pre-wrap"></p>
       <ul id="modalInfoList" class="text-sm space-y-1 mb-4"></ul>
-      <div id="modalRating" class="text-yellow-400 font-semibold text-lg mb-4"></div>
-
-      <!-- Character List -->
-      <div id="modalCharacters" class="mb-4">
-        <h3 class="font-bold text-lg mb-2">Karakter</h3>
-        <div class="grid grid-cols-3 gap-3 text-center text-sm"></div>
+      <div id="modalRating" class="text-yellow-400 font-semibold mb-3"></div>
+      <div id="trailerContainer" class="aspect-video w-full mb-4 rounded hidden overflow-hidden">
+        <iframe id="trailerFrame" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
       </div>
-
-      <!-- Songs -->
-      <div id="modalSongs" class="mb-4">
-        <h3 class="font-bold text-lg">Lagu Opening</h3>
-        <p id="openingSongs" class="mb-2 text-slate-300 text-sm"></p>
-        <h3 class="font-bold text-lg">Lagu Ending</h3>
-        <ul id="endingSongs" class="text-slate-300 text-sm list-disc list-inside"></ul>
-      </div>
-
-      <!-- Trailer -->
-      <div id="trailerContainer" class="aspect-video w-full rounded overflow-hidden hidden">
-        <iframe id="trailerFrame" class="w-full h-full" allowfullscreen loading="lazy"></iframe>
+      <div class="flex justify-end">
+        <button id="favButton" class="bg-pink-600 hover:bg-pink-700 px-4 py-2 rounded">❤️ Tambah ke Favorit</button>
       </div>
     </dialog>
 
     <!-- Footer -->
-    <footer class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-700 text-center text-xs text-slate-400 py-2 z-50">
-      <p>&copy; <span id="year"></span> Abu Kentucky. Built using Jikan API & Tailwind CSS.</p>
+    <footer class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t text-slate-400 text-xs text-center py-2">
+      <p>&copy; <span id="year"></span> Abu Kentucky. Jikan API & Tailwind CSS</p>
     </footer>
 
-    <!-- Script -->
     <script src="script.js"></script>
   </body>
 </html>
