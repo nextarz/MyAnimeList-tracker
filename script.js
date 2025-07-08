@@ -150,16 +150,7 @@ async function openModal(id) {
     const { data: characters } = await charsRes.json();
 
     modalTitle.textContent = data.title;
-    
-    const originalSynopsis = data.synopsis || "Sinopsis tidak tersedia.";
-modalDesc.textContent = originalSynopsis;
-
-translateToIndo(originalSynopsis).then(translated => {
-  if (translated && translated !== originalSynopsis) {
-    modalDesc.textContent = translated;
-  }
-});
-    
+    modalDesc.textContent = data.synopsis || "No synopsis available.";
     modalRating.textContent = data.score ? `⭐ Rating: ${data.score}` : "";
 
     const info = [
@@ -283,19 +274,6 @@ async function fetchAnime(query) {
   } catch (err) {
     console.error("Search error:", err);
     resultsContainer.innerHTML = `<p class="text-red-500 text-center">Failed to fetch search results.</p>`;
-  }
-}
-
-//translate
-async function translateToIndo(text) {
-  const encoded = encodeURIComponent(text);
-  try {
-    const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=id&dt=t&q=${encoded}`);
-    const data = await res.json();
-    return data[0].map(t => t[0]).join("") || text;
-  } catch (err) {
-    console.error("Translate error:", err);
-    return text; // fallback kalau error
   }
 }
 
