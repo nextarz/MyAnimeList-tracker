@@ -177,14 +177,16 @@ async function openModal(id) {
         <span class="text-xs">${char.character.name}</span>`;
       modalCharacters.appendChild(div);
     });
-
-    if (data.trailer?.embed_url) {
-      trailerFrame.src = `${data.trailer.embed_url}?autoplay=0&mute=0`;
-      trailerContainer.classList.remove("hidden");
-    }
-// setelah data.trailer…
     
-// ambil data AniList
+// setelah ini
+if (data.trailer?.embed_url) {
+  trailerFrame.src = `${data.trailer.embed_url}?autoplay=0&mute=0`;
+  trailerContainer.classList.remove("hidden");
+}
+
+// ⏳ COUNTDOWN DARI ANILIST (TARUH DI SINI)
+const ani = await fetchAniListAiring(data.mal_id);
+
 const countdownEl = document.getElementById("modalCountdown");
 if (ani && ani.airingAt && ani.episode) {
   const nextEpNum = ani.episode;
@@ -214,7 +216,6 @@ if (ani && ani.airingAt && ani.episode) {
 } else {
   countdownEl.textContent = `📺 Episode info not available`;
 }
-
 
   } catch (err) {
     console.error("Modal Error:", err);
