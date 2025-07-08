@@ -281,21 +281,21 @@ async function fetchAnime(query) {
 
 async function translateToIndo(text) {
   try {
-    const res = await fetch("https://translate.argosopentech.com/translate", {
+    const res = await fetch("https://api.terjemahin.cyclic.app/translate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         q: text,
         source: "en",
-        target: "id",
-        format: "text"
+        target: "id"
       })
     });
+
     const data = await res.json();
     return data.translatedText || text;
   } catch (err) {
     console.error("Translation error:", err);
-    return text; // fallback: tampilkan bahasa Inggris
+    return text;
   }
 }
 
