@@ -87,19 +87,33 @@ async function fetchAnime(query) {
 // Fetch all airing pages
 async function fetchAiringAnime() {
   airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading airing anime...</p>`;
+  const seen = new Set();
+  let page = 1;
+  let allAnime = [];
+
   try {
-    const res = await fetch("https://api.jikan.moe/v4/seasons/now");
+    while (page <= 5) {
+      const res = await fetch(`${apiBase}/seasons/now?page=${page}`);
+      if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+      const json = await res.json();
+      const data = json.data;
 
-    if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+      if (!data || data.length === 0) break;
 
-    const { data } = await res.json();
+      data.forEach((anime) => {
+        if (!seen.has(anime.mal_id)) {
+          seen.add(anime.mal_id);
+          allAnime.push(anime);
+        }
+      });
+
+      if (!json.pagination?.has_next_page) break;
+      page++;
+    }
+
     airingContainer.innerHTML = "";
-    const seen = new Set();
-    data.forEach((anime) => {
-      if (!seen.has(anime.mal_id)) {
-        seen.add(anime.mal_id);
-        airingContainer.appendChild(createAnimeCard(anime));
-      }
+    allAnime.forEach((anime) => {
+      airingContainer.appendChild(createAnimeCard(anime));
     });
   } catch (err) {
     console.error("Airing fetch error:", err);
