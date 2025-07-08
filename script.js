@@ -182,35 +182,32 @@ async function openModal(id) {
       trailerFrame.src = `${data.trailer.embed_url}?autoplay=0&mute=0`;
       trailerContainer.classList.remove("hidden");
     }
+// setelah data.trailer…
+    
+// ambil data AniList
+const ani = await fetchAniListAiring(data.mal_id);
 
-// Countdown & Episode Info
 const countdownEl = document.getElementById("modalCountdown");
-const currentEp = data.episodes ?? "Unknown";
-
-const broadcast = data.broadcast || {};
-const day = broadcast.day;
-const time = broadcast.time;
-const zone = broadcast.timezone;
-
-if (day && time && zone) {
-  const nextAirDate = getNextBroadcastDate(day, time, zone);
-
-  const updateCountdown = () => {
-    const now = new Date();
-    const diff = nextAirDate - now;
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-    countdownEl.textContent = `📺 Current Episode: ${currentEp} | ⏳ Next in: ${hours}h ${mins}m`;
+if (ani && ani.airingAt && ani.episode) {
+  const nextEpNum = ani.episode;
+  const currentEp = nextEpNum - 1;
+  const nextAirMs = ani.airingAt * 1000; // to ms
+  const update = () => {
+    const now = Date.now();
+    const diff = nextAirMs - now;
+    const h = Math.floor(diff / 36e5);
+    const m = Math.floor((diff % 36e5) / 6e4);
+    countdownEl.textContent = 
+      `📺 Current Episode: ${currentEp} | ⏳ Next Episode (${nextEpNum}) in: ${h}h ${m}m`;
   };
-
-  updateCountdown();
-  const interval = setInterval(() => {
-    updateCountdown();
-    if (new Date() >= nextAirDate) clearInterval(interval);
+  update();
+  const iv = setInterval(() => {
+    update();
+    if (Date.now() >= nextAirMs) clearInterval(iv);
   }, 60000);
 } else {
-  countdownEl.textContent = `📺 Current Episode: ${currentEp} | ⏳ No broadcast info`;
+  // fallback kalau AniList gak ada data
+  countdownEl.textContent = `📺 Episode info not available`;
 }
 
   } catch (err) {
@@ -220,22 +217,26 @@ if (day && time && zone) {
   }
 }
 
-function getNextBroadcastDate(dayStr, timeStr, zone) {
-  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const targetDay = days.indexOf(dayStr);
-  if (targetDay === -1 || !timeStr || !zone) return new Date(); // fallback
-
-  const [hour, minute] = timeStr.split(":").map(Number);
-  const now = new Date();
-  let next = new Date(now.toLocaleString("en-US", { timeZone: zone }));
-  next.setHours(hour, minute, 0, 0);
-
-  while (next.getDay() !== targetDay || next <= now) {
-    next.setDate(next.getDate() + 1);
-  }
-
-  return new Date(next.toLocaleString("en-US")); // convert ke waktu user
+async function fetchAniListAiring(idMal) {
+  const query = `
+    query ($id: Int) {
+      Media(idMal: $id, type: ANIME) {
+        nextAiringEpisode {
+          episode
+          airingAt
+        }
+      }
+    }
+  `;
+  const res = await fetch("https://graphql.anilist.co", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    body: JSON.stringify({ query, variables: { id: idMal } })
+  });
+  const json = await res.json();
+  return json.data?.Media?.nextAiringEpisode || null;
 }
+
 
 // pencarian anime
 async function fetchAnime(query) {
