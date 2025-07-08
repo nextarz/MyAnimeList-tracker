@@ -150,7 +150,17 @@ async function openModal(id) {
     const { data: characters } = await charsRes.json();
 
     modalTitle.textContent = data.title;
-    modalDesc.textContent = data.synopsis || "No synopsis available.";
+    const originalSynopsis = data.synopsis || "No synopsis available.";
+modalDesc.textContent = originalSynopsis;
+
+// Panggil translate SETELAH countdown setup (delay 1 detik)
+setTimeout(() => {
+  translateToIndo(originalSynopsis).then(translated => {
+    if (translated && translated !== originalSynopsis) {
+      modalDesc.textContent = translated;
+    }
+  });
+}, 1000);
     modalRating.textContent = data.score ? `⭐ Rating: ${data.score}` : "";
 
     const info = [
