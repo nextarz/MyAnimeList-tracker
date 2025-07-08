@@ -65,22 +65,41 @@ function createAnimeCard(anime) {
 }
 
 // Search anime
-async function fetchAnime(query) {
-  resultsContainer.innerHTML = `<p class="text-center text-slate-400 mt-10">Loading...</p>`;
+async function fetchAiringAnime() {
+  airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading airing anime...</p>`;
+  let page = 1;
+  let allAnime = [];
+  const seen = new Set();
+
   try {
-    const res = await fetch(`${apiBase}/anime?q=${encodeURIComponent(query)}&limit=20`);
-    const { data } = await res.json();
-    const seen = new Set();
-    resultsContainer.innerHTML = "";
-    data.forEach(anime => {
-      if (!seen.has(anime.mal_id)) {
-        seen.add(anime.mal_id);
-        resultsContainer.appendChild(createAnimeCard(anime));
-      }
+    while (true) {
+      const res = await fetch(`${apiBase}/seasons/now?page=${page}`);
+      if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+
+      const json = await res.json();
+      const animeList = json.data;
+
+      if (animeList.length === 0) break;
+
+      animeList.forEach((anime) => {
+        if (!seen.has(anime.mal_id)) {
+          seen.add(anime.mal_id);
+          allAnime.push(anime);
+        }
+      });
+
+      if (!json.pagination.has_next_page) break;
+      page++;
+    }
+
+    airingContainer.innerHTML = "";
+    allAnime.forEach((anime) => {
+      airingContainer.appendChild(createAnimeCard(anime));
     });
+
   } catch (err) {
-    console.error(err);
-    resultsContainer.innerHTML = `<p class="text-red-500 text-center">Failed to fetch anime.</p>`;
+    console.error("Airing fetch error:", err);
+    airingContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load airing anime.</p>`;
   }
 }
 
