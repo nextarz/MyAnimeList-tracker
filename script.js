@@ -291,6 +291,18 @@ async function fetchAnime(query) {
   }
 }
 
+async function translateToIndo(text) {
+  const encoded = encodeURIComponent(text);
+  try {
+    const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=id&dt=t&q=${encoded}`);
+    const data = await res.json();
+    return data[0].map(t => t[0]).join("") || text;
+  } catch (err) {
+    console.error("Translate error:", err);
+    return text; // fallback kalau error
+  }
+}
+
 searchForm.addEventListener("submit", e => {
   e.preventDefault();
   fetchAnime(queryInput.value.trim());
