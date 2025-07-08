@@ -28,6 +28,7 @@ function closeModal() {
   trailerFrame.src = "";
   trailerContainer.classList.add("hidden");
   infoModal.close();
+  document.body.classList.remove("modal-open");
   searchForm.querySelector('button[type="submit"]').focus();
 }
 
@@ -130,6 +131,7 @@ async function fetchAiringAnime() {
 // Open modal untuk detail anime
 async function openModal(id) {
   infoModal.showModal();
+  document.body.classList.add("modal-open");
 
   modalTitle.textContent = "Loading...";
   modalDesc.textContent = "";
