@@ -184,7 +184,8 @@ async function openModal(id) {
     }
 // setelah data.trailer…
     
-// ambil data AniListconst countdownEl = document.getElementById("modalCountdown");
+// ambil data AniList
+const countdownEl = document.getElementById("modalCountdown");
 if (ani && ani.airingAt && ani.episode) {
   const nextEpNum = ani.episode;
   const currentEp = nextEpNum - 1;
