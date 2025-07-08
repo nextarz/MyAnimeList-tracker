@@ -51,6 +51,23 @@
       <p>&copy; <span id="year"></span> Abu Kentucky. Built using Jikan API & Tailwind CSS.</p>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="script.js">// Tampilkan log di layar
+  (function () {
+    const oldLog = console.log;
+    const oldErr = console.error;
+    const logger = document.createElement('div');
+    logger.style = 'position:fixed;bottom:0;left:0;max-height:50vh;overflow:auto;font-size:12px;background:#000;color:#0f0;padding:5px;z-index:9999';
+    document.body.appendChild(logger);
+
+    console.log = function (...args) {
+      oldLog(...args);
+      logger.innerHTML += `<div>LOG: ${args.map(a => JSON.stringify(a)).join(' ')}</div>`;
+    };
+
+    console.error = function (...args) {
+      oldErr(...args);
+      logger.innerHTML += `<div style="color:red">ERROR: ${args.map(a => JSON.stringify(a)).join(' ')}</div>`;
+    };
+  })();</script>
   </body>
 </html>
