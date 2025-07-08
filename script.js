@@ -199,22 +199,23 @@ async function fetchAnime(query) {
   resultsContainer.innerHTML = `<p class="text-slate-400 text-center">Searching for "${query}"...</p>`;
   try {
     const res = await fetch(`${apiBase}/anime?q=${encodeURIComponent(query)}&limit=20`);
-    if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const { data } = await res.json();
     resultsContainer.innerHTML = "";
 
-    if (data.length === 0) {
-      resultsContainer.innerHTML = `<p class="text-slate-400 text-center">No results found for "${query}".</p>`;
+    if (!data.length) {
+      resultsContainer.innerHTML = `<p class="text-slate-400 text-center">No results for "${query}".</p>`;
       return;
     }
 
-    const seen = new Set();
-    data.forEach(anime => {
-      if (!seen.has(anime.mal_id)) {
-        seen.add(anime.mal_id);
-        resultsContainer.appendChild(createAnimeCard(anime));
-      }
+    // dedupe by mal_id
+    const unique = Array.from(
+      new Map(data.map(item => [item.mal_id, item])).values()
+    );
+
+    unique.forEach(anime => {
+      resultsContainer.appendChild(createAnimeCard(anime));
     });
   } catch (err) {
     console.error("Search error:", err);
