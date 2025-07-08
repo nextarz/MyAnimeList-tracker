@@ -2,13 +2,9 @@
 
 const searchForm = document.getElementById("searchForm"); const queryInput = document.getElementById("queryInput"); const resultsContainer = document.getElementById("resultsContainer"); const airingContainer = document.getElementById("airingContainer");
 
-const infoModal = document.getElementById("infoModal"); const modalTitle = document.getElementById("modalTitle"); const modalDesc = document.getElementById("modalDesc"); const modalInfoList = document.getElementById("modalInfoList"); const modalRating = document.getElementById("modalRating"); const closeModalBtn = document.getElementById("closeModalBtn");
+const infoModal = document.getElementById("infoModal"); const modalTitle = document.getElementById("modalTitle"); const modalDesc = document.getElementById("modalDesc"); const modalInfoList = document.getElementById("modalInfoList"); const modalRating = document.getElementById("modalRating"); const closeModalBtn = document.getElementById("closeModalBtn"); const trailerContainer = document.getElementById("trailerContainer"); const trailerFrame = document.getElementById("trailerFrame"); const modalCharacters = document.querySelector("#modalCharacters .grid");
 
-const trailerContainer = document.getElementById("trailerContainer"); const trailerFrame = document.getElementById("trailerFrame");
-
-const modalCharacters = document.querySelector("#modalCharacters .grid"); const modalCover = document.getElementById("modalCover"); const modalGenres = document.getElementById("modalGenres"); const modalStats = document.getElementById("modalStats");
-
-// Close modal closeModalBtn.addEventListener("click", closeModal); window.addEventListener("keydown", e => { if (e.key === "Escape" && infoModal.open) closeModal(); });
+closeModalBtn.addEventListener("click", closeModal); window.addEventListener("keydown", e => { if (e.key === "Escape" && infoModal.open) closeModal(); });
 
 function closeModal() { trailerFrame.src = ""; trailerContainer.classList.add("hidden"); infoModal.close(); searchForm.querySelector('button[type="submit"]').focus(); }
 
@@ -26,68 +22,42 @@ const score = document.createElement("p"); score.className = "text-slate-400 tex
 
 info.append(title, synopsis, score); div.append(img, info); div.addEventListener("click", () => openModal(anime.mal_id)); return div; }
 
-async function fetchAnime(query) { resultsContainer.innerHTML = <p class="text-center text-slate-400 mt-10">Loading...</p>; try { const res = await fetch(${apiBase}/anime?q=${encodeURIComponent(query)}&limit=20); const { data } = await res.json(); const seen = new Set(); resultsContainer.innerHTML = ""; data.forEach(anime => { if (!seen.has(anime.mal_id)) { seen.add(anime.mal_id); resultsContainer.appendChild(createAnimeCard(anime)); } }); } catch (err) { console.error(err); resultsContainer.innerHTML = <p class="text-red-500 text-center">Failed to fetch anime.</p>; } }
+async function fetchAnime(query) { resultsContainer.innerHTML = '<p class="text-center text-slate-400 mt-10">Loading...</p>'; try { const res = await fetch(${apiBase}/anime?q=${encodeURIComponent(query)}&limit=20); const { data } = await res.json(); const seen = new Set(); resultsContainer.innerHTML = ""; data.forEach(anime => { if (!seen.has(anime.mal_id)) { seen.add(anime.mal_id); resultsContainer.appendChild(createAnimeCard(anime)); } }); } catch (err) { console.error(err); resultsContainer.innerHTML = '<p class="text-red-500 text-center">Failed to fetch anime.</p>'; } }
 
-async function fetchAiringAnime() { airingContainer.innerHTML = <p class="text-slate-400 text-center">Loading airing anime...</p>; let page = 1; let allAnime = []; const seen = new Set();
+async function fetchAiringAnime() { airingContainer.innerHTML = '<p class="text-slate-400 text-center">Loading airing anime...</p>'; let page = 1; let allAnime = []; const seen = new Set();
 
-try { while (true) { const res = await fetch(${apiBase}/seasons/now?page=${page}); if (!res.ok) throw new Error(HTTP error! Status: ${res.status});
+try { while (true) { const res = await fetch(${apiBase}/seasons/now?page=${page}); if (!res.ok) throw new Error(HTTP error! Status: ${res.status}); const json = await res.json(); const animeList = json.data; if (animeList.length === 0) break; animeList.forEach((anime) => { if (!seen.has(anime.mal_id)) { seen.add(anime.mal_id); allAnime.push(anime); } }); if (!json.pagination.has_next_page) break; page++; } airingContainer.innerHTML = ""; allAnime.forEach((anime) => { airingContainer.appendChild(createAnimeCard(anime)); }); } catch (err) { console.error("Airing fetch error:", err); airingContainer.innerHTML = '<p class="text-red-500 text-center">Failed to load airing anime.</p>'; } }
 
-const json = await res.json();
-  const animeList = json.data;
-
-  if (animeList.length === 0) break;
-
-  animeList.forEach((anime) => {
-    if (!seen.has(anime.mal_id)) {
-      seen.add(anime.mal_id);
-      allAnime.push(anime);
-    }
-  });
-
-  if (!json.pagination.has_next_page) break;
-  page++;
-}
-
-airingContainer.innerHTML = "";
-allAnime.forEach((anime) => {
-  airingContainer.appendChild(createAnimeCard(anime));
-});
-
-} catch (err) { console.error("Airing fetch error:", err); airingContainer.innerHTML = <p class="text-red-500 text-center">Failed to load airing anime.</p>; } }
-
-async function openModal(id) { window.scrollTo({ top: 0, behavior: "smooth" }); infoModal.showModal();
-
-modalTitle.textContent = "Loading..."; modalDesc.textContent = ""; modalInfoList.innerHTML = ""; modalRating.textContent = ""; modalCharacters.innerHTML = ""; trailerFrame.src = ""; trailerContainer.classList.add("hidden"); modalGenres.innerHTML = ""; modalCover.src = ""; modalStats.innerHTML = "";
+async function openModal(id) { window.scrollTo({ top: 0, behavior: "smooth" }); infoModal.showModal(); modalTitle.textContent = "Loading..."; modalDesc.textContent = ""; modalInfoList.innerHTML = ""; modalRating.textContent = ""; modalCharacters.innerHTML = ""; trailerFrame.src = ""; trailerContainer.classList.add("hidden");
 
 try { const [animeRes, charsRes] = await Promise.all([ fetch(${apiBase}/anime/${id}/full), fetch(${apiBase}/anime/${id}/characters) ]); const { data } = await animeRes.json(); const { data: characters } = await charsRes.json();
 
 modalTitle.textContent = data.title;
-modalDesc.textContent = data.synopsis?.split(".")[0] + "." || "No synopsis available.";
-modalRating.textContent = data.score ? `⭐ ${data.score}` : "";
-modalCover.src = data.images.jpg.image_url;
-modalCover.alt = data.title;
+modalDesc.textContent = (data.synopsis || "No synopsis available.").split(". ").slice(0, 2).join(". ") + ".";
+modalRating.textContent = data.score ? `⭐ Rating: ${data.score}` : "";
 
-data.genres.forEach(g => {
-  const span = document.createElement("span");
-  span.textContent = g.name;
-  span.className = "bg-slate-700 text-sm px-2 py-1 rounded-full";
-  modalGenres.appendChild(span);
-});
-
-modalStats.innerHTML = `
-  <div class="grid grid-cols-2 gap-2 text-sm">
-    <div><b>Episodes:</b> ${data.episodes ?? "Unknown"}</div>
-    <div><b>Status:</b> ${data.status ?? "Unknown"}</div>
-    <div><b>Aired:</b> ${data.aired?.string ?? "Unknown"}</div>
-    <div><b>Studio:</b> ${data.studios.map(s => s.name).join(", ") || "Unknown"}</div>
-  </div>`;
+const info = [
+  { label: "Episodes", value: data.episodes ?? "Unknown" },
+  { label: "Status", value: data.status ?? "Unknown" },
+  { label: "Aired", value: data.aired?.string ?? "Unknown" },
+  { label: "Broadcast", value: data.broadcast?.string ?? "Unknown" },
+  { label: "Studios", value: data.studios.map(s => s.name).join(", ") || "Unknown" },
+  { label: "Genres", value: data.genres.map(g => g.name).join(", ") || "Unknown" },
+  { label: "Themes", value: data.themes.map(t => t.name).join(", ") || "Unknown" },
+  { label: "Source", value: data.source || "Unknown" },
+  { label: "Duration", value: data.duration || "Unknown" },
+  { label: "Rating", value: data.rating || "Unknown" }
+];
+modalInfoList.innerHTML = info.map(i =>
+  `<li><span class="font-semibold text-blue-400">${i.label}:</span> ${i.value}</li>`
+).join("");
 
 characters.slice(0, 6).forEach(char => {
   const div = document.createElement("div");
   div.className = "flex flex-col items-center";
   div.innerHTML = `
     <img src="${char.character.images.jpg.image_url}" alt="${char.character.name}" class="w-16 h-20 rounded shadow border border-gray-600 mb-1 object-cover" />
-    <span class="text-xs text-center">${char.character.name}</span>`;
+    <span class="text-xs">${char.character.name}</span>`;
   modalCharacters.appendChild(div);
 });
 
