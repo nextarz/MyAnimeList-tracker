@@ -183,37 +183,35 @@ async function openModal(id) {
       trailerContainer.classList.remove("hidden");
     }
 
-    // ⏳ Countdown & Episode
-    const countdownEl = document.getElementById("modalCountdown");
-    const currentEp = data.episodes ?? "Unknown";
+// Countdown & Episode Info
+const countdownEl = document.getElementById("modalCountdown");
+const currentEp = data.episodes ?? "Unknown";
 
-    const broadcast = data.broadcast || {};
-    const day = broadcast.day;
-    const time = broadcast.time;
-    const zone = broadcast.timezone;
+const broadcast = data.broadcast || {};
+const day = broadcast.day;
+const time = broadcast.time;
+const zone = broadcast.timezone;
 
-    if (day && time && zone) {
-      const nextAirDate = getNextBroadcastDate(day, time, zone);
-      const updateCountdown = () => {
-        const now = new Date();
-        const diff = nextAirDate - now;
-        if (diff <= 0) {
-          countdownEl.textContent = `📺 Episode ${currentEp} airing now!`;
-          return;
-        }
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        countdownEl.textContent = `📺 Current Episode: ${currentEp} | ⏳ Next in: ${hours}h ${mins}m`;
-      };
+if (day && time && zone) {
+  const nextAirDate = getNextBroadcastDate(day, time, zone);
 
-      updateCountdown();
-      const interval = setInterval(() => {
-        updateCountdown();
-        if (nextAirDate - new Date() <= 0) clearInterval(interval);
-      }, 60000);
-    } else {
-      countdownEl.textContent = `📺 Current Episode: ${currentEp}`;
-    }
+  const updateCountdown = () => {
+    const now = new Date();
+    const diff = nextAirDate - now;
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+    countdownEl.textContent = `📺 Current Episode: ${currentEp} | ⏳ Next in: ${hours}h ${mins}m`;
+  };
+
+  updateCountdown();
+  const interval = setInterval(() => {
+    updateCountdown();
+    if (new Date() >= nextAirDate) clearInterval(interval);
+  }, 60000);
+} else {
+  countdownEl.textContent = `📺 Current Episode: ${currentEp} | ⏳ No broadcast info`;
+}
 
   } catch (err) {
     console.error("Modal Error:", err);
