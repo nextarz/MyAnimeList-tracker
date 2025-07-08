@@ -31,7 +31,7 @@ function closeModal() {
   searchForm.querySelector('button[type="submit"]').focus();
 }
 
-// Build anime card
+// Anime card
 function createAnimeCard(anime) {
   const div = document.createElement("article");
   div.className = "bg-slate-800 rounded-md flex gap-4 p-3 hover:bg-slate-700 cursor-pointer shadow";
@@ -87,7 +87,7 @@ async function fetchAiringAnime() {
   }
 }
 
-// Fetch all airing pages
+// Anime airing/berlangsung 
 async function fetchAiringAnime() {
   airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading airing anime...</p>`;
   const seen = new Set();
@@ -127,7 +127,7 @@ async function fetchAiringAnime() {
   }
 }
 
-// Open modal with details
+// Open modal untuk detail anime
 async function openModal(id) {
   window.scrollTo({ top: 0, behavior: "smooth" });
   infoModal.showModal();
@@ -178,13 +178,13 @@ async function openModal(id) {
       modalCharacters.appendChild(div);
     });
     
-// setelah ini
+// trailer
 if (data.trailer?.embed_url) {
   trailerFrame.src = `${data.trailer.embed_url}?autoplay=0&mute=0`;
   trailerContainer.classList.remove("hidden");
 }
 
-// ⏳ COUNTDOWN DARI ANILIST (TARUH DI SINI)
+// COUNTDOWN DARI ANILIST 
 const ani = await fetchAniListAiring(data.mal_id);
 
 const countdownEl = document.getElementById("modalCountdown");
@@ -224,6 +224,7 @@ if (ani && ani.airingAt && ani.episode) {
   }
 }
 
+//helper cuountdown 
 async function fetchAniListAiring(idMal) {
   const query = `
     query ($id: Int) {
