@@ -151,8 +151,14 @@ async function openModal(id) {
 
     modalTitle.textContent = data.title;
     modalDesc.textContent = "Menerjemahkan...";
-const translated = await translateToIndo(data.synopsis || "Sinopsis tidak tersedia.");
-modalDesc.textContent = translated;
+try {
+  const synopsis = data.synopsis || "Sinopsis tidak tersedia.";
+  const translated = await translateToIndo(synopsis);
+  modalDesc.textContent = translated;
+} catch (err) {
+  modalDesc.textContent = data.synopsis || "Sinopsis tidak tersedia.";
+}
+    
     modalRating.textContent = data.score ? `⭐ Rating: ${data.score}` : "";
 
     const info = [
@@ -280,6 +286,9 @@ async function fetchAnime(query) {
 }
 
 async function translateToIndo(text) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000); // timeout 5 detik
+
   try {
     const res = await fetch("https://api.terjemahin.cyclic.app/translate", {
       method: "POST",
@@ -288,14 +297,18 @@ async function translateToIndo(text) {
         q: text,
         source: "en",
         target: "id"
-      })
+      }),
+      signal: controller.signal
     });
 
+    clearTimeout(timeout);
+
     const data = await res.json();
+    console.log("Translated:", data);
     return data.translatedText || text;
   } catch (err) {
     console.error("Translation error:", err);
-    return text;
+    return text + " (ENG)";
   }
 }
 
