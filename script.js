@@ -186,9 +186,11 @@ async function openModal(id) {
     // ⏳ Countdown & Episode
     const countdownEl = document.getElementById("modalCountdown");
     const currentEp = data.episodes ?? "Unknown";
-    const day = data.broadcast?.day;
-    const time = data.broadcast?.time;
-    const zone = data.broadcast?.timezone;
+
+    const broadcast = data.broadcast || {};
+    const day = broadcast.day;
+    const time = broadcast.time;
+    const zone = broadcast.timezone;
 
     if (day && time && zone) {
       const nextAirDate = getNextBroadcastDate(day, time, zone);
@@ -214,16 +216,18 @@ async function openModal(id) {
     }
 
   } catch (err) {
-    console.error(err);
+    console.error("Modal Error:", err);
     modalTitle.textContent = "Error";
     modalDesc.textContent = "Failed to load anime detail.";
   }
 }
+
 function getNextBroadcastDate(dayStr, timeStr, zone) {
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const targetDay = days.indexOf(dayStr);
-  const [hour, minute] = timeStr.split(":").map(Number);
+  if (targetDay === -1 || !timeStr || !zone) return new Date(); // fallback
 
+  const [hour, minute] = timeStr.split(":").map(Number);
   const now = new Date();
   let next = new Date(now.toLocaleString("en-US", { timeZone: zone }));
   next.setHours(hour, minute, 0, 0);
@@ -232,9 +236,7 @@ function getNextBroadcastDate(dayStr, timeStr, zone) {
     next.setDate(next.getDate() + 1);
   }
 
-  // Convert ke waktu lokal user
-  const localTime = new Date(next.toLocaleString("en-US", { timeZone: "UTC" }));
-  return localTime;
+  return new Date(next.toLocaleString("en-US")); // convert ke waktu user
 }
 
 // pencarian anime
