@@ -129,9 +129,6 @@ async function fetchAiringAnime() {
 
 // Open modal with details
 async function openModal(id) {
-  // scroll to top
-  window.scrollTo({ top: 0, behavior: "smooth" });
-  infoModal.showModal();
 
   // reset
   modalTitle.textContent = "Loading...";
