@@ -87,37 +87,36 @@ async function fetchAnime(query) {
 // Fetch all airing pages
 async function fetchAiringAnime() {
   airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading airing anime...</p>`;
-  const seen = new Set();
   let page = 1;
   let allAnime = [];
+  const seen = new Set();
 
   try {
     while (true) {
       const res = await fetch(`${apiBase}/seasons/now?page=${page}`);
       if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+
       const json = await res.json();
-      const data = json.data;
+      const animeList = json.data;
 
-      if (!data || data.length === 0) break;
+      if (animeList.length === 0) break;
 
-      data.forEach((anime) => {
+      animeList.forEach((anime) => {
         if (!seen.has(anime.mal_id)) {
           seen.add(anime.mal_id);
           allAnime.push(anime);
         }
       });
 
-      if (!json.pagination?.has_next_page) break;
+      if (!json.pagination.has_next_page) break;
       page++;
-    
-    // Tambahin delay 500ms biar gak diban
-  await new Promise(r => setTimeout(r, 500));
-}
+    }
 
     airingContainer.innerHTML = "";
     allAnime.forEach((anime) => {
       airingContainer.appendChild(createAnimeCard(anime));
     });
+
   } catch (err) {
     console.error("Airing fetch error:", err);
     airingContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load airing anime.</p>`;
