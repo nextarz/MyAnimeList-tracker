@@ -150,7 +150,9 @@ async function openModal(id) {
     const { data: characters } = await charsRes.json();
 
     modalTitle.textContent = data.title;
-    modalDesc.textContent = data.synopsis || "No synopsis available.";
+    modalDesc.textContent = "Menerjemahkan...";
+const translated = await translateToIndo(data.synopsis || "Sinopsis tidak tersedia.");
+modalDesc.textContent = translated;
     modalRating.textContent = data.score ? `⭐ Rating: ${data.score}` : "";
 
     const info = [
@@ -274,6 +276,26 @@ async function fetchAnime(query) {
   } catch (err) {
     console.error("Search error:", err);
     resultsContainer.innerHTML = `<p class="text-red-500 text-center">Failed to fetch search results.</p>`;
+  }
+}
+
+async function translateToIndo(text) {
+  try {
+    const res = await fetch("https://translate.argosopentech.com/translate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        q: text,
+        source: "en",
+        target: "id",
+        format: "text"
+      })
+    });
+    const data = await res.json();
+    return data.translatedText || text;
+  } catch (err) {
+    console.error("Translation error:", err);
+    return text; // fallback: tampilkan bahasa Inggris
   }
 }
 
