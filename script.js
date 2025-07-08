@@ -150,7 +150,15 @@ async function openModal(id) {
     const { data: characters } = await charsRes.json();
 
     modalTitle.textContent = data.title;
-    modalDesc.textContent = data.synopsis || "No synopsis available.";
+    modalDesc.textContent = "Menerjemahkan...";
+
+const originalSynopsis = data.synopsis || "Sinopsis tidak tersedia.";
+try {
+  const translated = await translateToIndo(originalSynopsis);
+  modalDesc.textContent = translated;
+} catch {
+  modalDesc.textContent = originalSynopsis;
+}
     modalRating.textContent = data.score ? `⭐ Rating: ${data.score}` : "";
 
     const info = [
@@ -277,7 +285,18 @@ async function fetchAnime(query) {
   }
 }
 
-
+//translate
+async function translateToIndo(text) {
+  const encoded = encodeURIComponent(text);
+  try {
+    const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=id&dt=t&q=${encoded}`);
+    const data = await res.json();
+    return data[0].map(t => t[0]).join("") || text;
+  } catch (err) {
+    console.error("Translate error:", err);
+    return text; // fallback kalau error
+  }
+}
 
 searchForm.addEventListener("submit", e => {
   e.preventDefault();
