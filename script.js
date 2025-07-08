@@ -1,6 +1,6 @@
 // script.js
 const apiBase = "https://api.jikan.moe/v4";
-
+let countdownInterval; // Buat simpen interval
 const searchForm = document.getElementById("searchForm");
 const queryInput = document.getElementById("queryInput");
 const resultsContainer = document.getElementById("resultsContainer");
@@ -212,7 +212,11 @@ if (ani && ani.airingAt && ani.episode) {
   };
 
   update();
-  const iv = setInterval(update, 1000);
+  // Sebelum bikin interval baru
+if (countdownInterval) clearInterval(countdownInterval);
+
+// Bikin interval
+countdownInterval = setInterval(update, 1000);
 } else {
   countdownEl.textContent = `📺 Episode info not available`;
 }
