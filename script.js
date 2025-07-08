@@ -17,9 +17,6 @@ const trailerContainer = document.getElementById("trailerContainer");
 const trailerFrame = document.getElementById("trailerFrame");
 
 const modalCharacters = document.querySelector("#modalCharacters .grid");
-const modalCover = document.getElementById("modalCover");
-const modalMeta = document.getElementById("modalMeta");
-const modalGenres = document.getElementById("modalGenres");
 
 // Close modal
 closeModalBtn.addEventListener("click", closeModal);
@@ -90,36 +87,37 @@ async function fetchAnime(query) {
 // Fetch all airing pages
 async function fetchAiringAnime() {
   airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading airing anime...</p>`;
+  const seen = new Set();
   let page = 1;
   let allAnime = [];
-  const seen = new Set();
 
   try {
     while (true) {
       const res = await fetch(`${apiBase}/seasons/now?page=${page}`);
       if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-
       const json = await res.json();
-      const animeList = json.data;
+      const data = json.data;
 
-      if (animeList.length === 0) break;
+      if (!data || data.length === 0) break;
 
-      animeList.forEach((anime) => {
+      data.forEach((anime) => {
         if (!seen.has(anime.mal_id)) {
           seen.add(anime.mal_id);
           allAnime.push(anime);
         }
       });
 
-      if (!json.pagination.has_next_page) break;
+      if (!json.pagination?.has_next_page) break;
       page++;
-    }
+    
+    // Tambahin delay 500ms biar gak diban
+  await new Promise(r => setTimeout(r, 500));
+}
 
     airingContainer.innerHTML = "";
     allAnime.forEach((anime) => {
       airingContainer.appendChild(createAnimeCard(anime));
     });
-
   } catch (err) {
     console.error("Airing fetch error:", err);
     airingContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load airing anime.</p>`;
@@ -128,17 +126,9 @@ async function fetchAiringAnime() {
 
 // Open modal with details
 async function openModal(id) {
-  modalCover.src = data.images.jpg.image_url;
-modalTitle.textContent = data.title;
-modalMeta.textContent = `${data.type} · ${data.year || "Unknown"} · ${data.status} · ${data.episodes ?? "?"} eps`;
-modalRating.textContent = data.score ? `⭐ ${data.score}` : "";
-
-modalGenres.innerHTML = [...data.genres, ...data.themes].map(tag =>
-  `<span class="bg-slate-700 text-xs px-2 py-1 rounded">${tag.name}</span>`
-).join("");
-
-// Ringkasan sinopsis
-modalDesc.textContent = data.synopsis?.split(". ").slice(0, 2).join(". ") + "." || "No synopsis available.";
+  // scroll to top
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  infoModal.showModal();
 
   // reset
   modalTitle.textContent = "Loading...";
