@@ -92,7 +92,7 @@ async function fetchAiringAnime() {
   let allAnime = [];
 
   try {
-    while (page <= 5) {
+    while (true) {
       const res = await fetch(`${apiBase}/seasons/now?page=${page}`);
       if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
       const json = await res.json();
@@ -109,7 +109,10 @@ async function fetchAiringAnime() {
 
       if (!json.pagination?.has_next_page) break;
       page++;
-    }
+    
+    // Tambahin delay 500ms biar gak diban
+  await new Promise(r => setTimeout(r, 500));
+}
 
     airingContainer.innerHTML = "";
     allAnime.forEach((anime) => {
