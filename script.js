@@ -150,15 +150,17 @@ async function openModal(id) {
     const { data: characters } = await charsRes.json();
 
     modalTitle.textContent = data.title;
-    modalDesc.textContent = "Menerjemahkan...";
+    
+    const originalSynopsis = data.synopsis || "Sinopsis tidak tersedia.";
+modalDesc.textContent = originalSynopsis;
 
-const originalSynopsis = data.synopsis || "Sinopsis tidak tersedia.";
-try {
-  const translated = await translateToIndo(originalSynopsis);
-  modalDesc.textContent = translated;
-} catch {
-  modalDesc.textContent = originalSynopsis;
-}
+// Translate di background (gak ganggu countdown)
+translateToIndo(originalSynopsis).then(translated => {
+  if (translated && translated !== originalSynopsis) {
+    modalDesc.textContent = translated;
+  }
+});
+    
     modalRating.textContent = data.score ? `⭐ Rating: ${data.score}` : "";
 
     const info = [
