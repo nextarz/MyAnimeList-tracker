@@ -154,7 +154,6 @@ async function openModal(id) {
     const originalSynopsis = data.synopsis || "Sinopsis tidak tersedia.";
 modalDesc.textContent = originalSynopsis;
 
-// Translate di background (gak ganggu countdown)
 translateToIndo(originalSynopsis).then(translated => {
   if (translated && translated !== originalSynopsis) {
     modalDesc.textContent = translated;
