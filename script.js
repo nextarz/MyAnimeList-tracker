@@ -184,31 +184,36 @@ async function openModal(id) {
     }
 // setelah data.trailer…
     
-// ambil data AniList
-const ani = await fetchAniListAiring(data.mal_id);
-
-const countdownEl = document.getElementById("modalCountdown");
+// ambil data AniListconst countdownEl = document.getElementById("modalCountdown");
 if (ani && ani.airingAt && ani.episode) {
   const nextEpNum = ani.episode;
   const currentEp = nextEpNum - 1;
-  const nextAirMs = ani.airingAt * 1000; // to ms
+  const nextAirMs = ani.airingAt * 1000;
+
   const update = () => {
     const now = Date.now();
     const diff = nextAirMs - now;
-    const h = Math.floor(diff / 36e5);
-    const m = Math.floor((diff % 36e5) / 6e4);
-    countdownEl.textContent = 
-      `📺 Current Episode: ${currentEp} | ⏳ Next Episode (${nextEpNum}) in: ${h}h ${m}m`;
+
+    if (diff <= 0) {
+      countdownEl.textContent = `📺 Current Episode: ${nextEpNum} | ⏳ Airing now!`;
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+    countdownEl.textContent =
+      `📺 Current Episode: ${currentEp} | ⏳ Next Episode (${nextEpNum}) in: ${days}d ${hours}h ${mins}m ${secs}s`;
   };
+
   update();
-  const iv = setInterval(() => {
-    update();
-    if (Date.now() >= nextAirMs) clearInterval(iv);
-  }, 60000);
+  const iv = setInterval(update, 1000);
 } else {
-  // fallback kalau AniList gak ada data
   countdownEl.textContent = `📺 Episode info not available`;
 }
+
 
   } catch (err) {
     console.error("Modal Error:", err);
