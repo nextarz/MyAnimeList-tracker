@@ -191,7 +191,30 @@ async function openModal(id) {
     modalDesc.textContent = "Failed to load anime detail.";
   }
 }
+async function fetchAnime(query) {
+  if (!query) return;
 
+  resultsContainer.innerHTML = `<p class="text-slate-400 text-center">Searching for "${query}"...</p>`;
+  try {
+    const res = await fetch(`${apiBase}/anime?q=${encodeURIComponent(query)}&limit=20`);
+    if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+
+    const { data } = await res.json();
+    resultsContainer.innerHTML = "";
+
+    if (data.length === 0) {
+      resultsContainer.innerHTML = `<p class="text-slate-400 text-center">No results found for "${query}".</p>`;
+      return;
+    }
+
+    data.forEach(anime => {
+      resultsContainer.appendChild(createAnimeCard(anime));
+    });
+  } catch (err) {
+    console.error("Search error:", err);
+    resultsContainer.innerHTML = `<p class="text-red-500 text-center">Failed to fetch search results.</p>`;
+  }
+}
 searchForm.addEventListener("submit", e => {
   e.preventDefault();
   fetchAnime(queryInput.value.trim());
