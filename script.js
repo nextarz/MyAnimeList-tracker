@@ -130,8 +130,9 @@ async function fetchAiringAnime() {
 
 // Open modal untuk detail anime
 async function openModal(id) {
-  infoModal.showModal();
-  document.body.classList.add("modal-open");
+  infoModal.classList.remove("hidden");
+infoModal.setAttribute("open", "true");
+document.body.classList.add("modal-open");
 
   modalTitle.textContent = "Loading...";
   modalDesc.textContent = "";
