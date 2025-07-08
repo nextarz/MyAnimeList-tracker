@@ -1,4 +1,4 @@
-
+// script.js
 const apiBase = "https://api.jikan.moe/v4";
 
 const searchForm = document.getElementById("searchForm");
@@ -11,12 +11,14 @@ const modalTitle = document.getElementById("modalTitle");
 const modalDesc = document.getElementById("modalDesc");
 const modalInfoList = document.getElementById("modalInfoList");
 const modalRating = document.getElementById("modalRating");
-const modalCountdown = document.getElementById("modalCountdown");
-const trailerContainer = document.getElementById("trailerContainer");
-const trailerFrame = document.getElementById("trailerFrame");
-const modalCharacters = document.querySelector("#modalCharacters .grid");
 const closeModalBtn = document.getElementById("closeModalBtn");
 
+const trailerContainer = document.getElementById("trailerContainer");
+const trailerFrame = document.getElementById("trailerFrame");
+
+const modalCharacters = document.querySelector("#modalCharacters .grid");
+
+// Close modal
 closeModalBtn.addEventListener("click", closeModal);
 window.addEventListener("keydown", e => {
   if (e.key === "Escape" && infoModal.open) closeModal();
@@ -29,6 +31,7 @@ function closeModal() {
   searchForm.querySelector('button[type="submit"]').focus();
 }
 
+// Anime card
 function createAnimeCard(anime) {
   const div = document.createElement("article");
   div.className = "bg-slate-800 rounded-md flex gap-4 p-3 hover:bg-slate-700 cursor-pointer shadow";
@@ -61,40 +64,46 @@ function createAnimeCard(anime) {
   return div;
 }
 
-async function fetchAnime(query) {
-  resultsContainer.innerHTML = `<p class="text-slate-400 text-center">Loading...</p>`;
+// Search anime
+async function fetchAiringAnime() {
+  airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading airing anime...</p>`;
   try {
-    const res = await fetch(`${apiBase}/anime?q=${encodeURIComponent(query)}&order_by=popularity&sort=asc&limit=20`);
+    const res = await fetch("https://api.jikan.moe/v4/seasons/now");
+
+    if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+
     const { data } = await res.json();
-    resultsContainer.innerHTML = "";
+    airingContainer.innerHTML = "";
     const seen = new Set();
-    data.forEach(anime => {
+    data.forEach((anime) => {
       if (!seen.has(anime.mal_id)) {
         seen.add(anime.mal_id);
-        resultsContainer.appendChild(createAnimeCard(anime));
+        airingContainer.appendChild(createAnimeCard(anime));
       }
     });
   } catch (err) {
-    console.error("Search error:", err);
-    resultsContainer.innerHTML = `<p class="text-red-500 text-center">Failed to search anime.</p>`;
+    console.error("Airing fetch error:", err);
+    airingContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load airing anime.</p>`;
   }
 }
 
+// Anime airing/berlangsung 
 async function fetchAiringAnime() {
   airingContainer.innerHTML = `<p class="text-slate-400 text-center">Loading airing anime...</p>`;
   const seen = new Set();
-  let page = 1, allAnime = [];
+  let page = 1;
+  let allAnime = [];
 
   try {
     while (true) {
       const res = await fetch(`${apiBase}/seasons/now?page=${page}`);
-      if (!res.ok) break;
+      if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
       const json = await res.json();
       const data = json.data;
 
       if (!data || data.length === 0) break;
 
-      data.forEach(anime => {
+      data.forEach((anime) => {
         if (!seen.has(anime.mal_id)) {
           seen.add(anime.mal_id);
           allAnime.push(anime);
@@ -103,11 +112,13 @@ async function fetchAiringAnime() {
 
       if (!json.pagination?.has_next_page) break;
       page++;
-      await new Promise(r => setTimeout(r, 500));
-    }
+    
+    // Tambahin delay 500ms biar gak diban
+  await new Promise(r => setTimeout(r, 500));
+}
 
     airingContainer.innerHTML = "";
-    allAnime.forEach(anime => {
+    allAnime.forEach((anime) => {
       airingContainer.appendChild(createAnimeCard(anime));
     });
   } catch (err) {
@@ -116,6 +127,7 @@ async function fetchAiringAnime() {
   }
 }
 
+// Open modal untuk detail anime
 async function openModal(id) {
   window.scrollTo({ top: 0, behavior: "smooth" });
   infoModal.showModal();
@@ -124,10 +136,10 @@ async function openModal(id) {
   modalDesc.textContent = "";
   modalInfoList.innerHTML = "";
   modalRating.textContent = "";
-  modalCountdown.textContent = "";
   modalCharacters.innerHTML = "";
   trailerFrame.src = "";
   trailerContainer.classList.add("hidden");
+  document.getElementById("modalCountdown").textContent = "";
 
   try {
     const [animeRes, charsRes] = await Promise.all([
@@ -138,15 +150,17 @@ async function openModal(id) {
     const { data: characters } = await charsRes.json();
 
     modalTitle.textContent = data.title;
-
+    
     const originalSynopsis = data.synopsis || "Sinopsis tidak tersedia.";
-    modalDesc.textContent = originalSynopsis;
-    translateToIndo(originalSynopsis).then(translated => {
-      if (translated && translated !== originalSynopsis) {
-        modalDesc.textContent = translated;
-      }
-    });
+modalDesc.textContent = originalSynopsis;
 
+// Translate di background (gak ganggu countdown)
+translateToIndo(originalSynopsis).then(translated => {
+  if (translated && translated !== originalSynopsis) {
+    modalDesc.textContent = translated;
+  }
+});
+    
     modalRating.textContent = data.score ? `⭐ Rating: ${data.score}` : "";
 
     const info = [
@@ -173,45 +187,16 @@ async function openModal(id) {
         <span class="text-xs">${char.character.name}</span>`;
       modalCharacters.appendChild(div);
     });
-
-    if (data.trailer?.embed_url) {
-      trailerFrame.src = `${data.trailer.embed_url}?autoplay=0&mute=0`;
-      trailerContainer.classList.remove("hidden");
-    }
-
-    if (data.broadcast?.time && data.broadcast?.day && data.status === "Currently Airing") {
-      const nextEpTime = parseBroadcastTime(data.broadcast.time, data.broadcast.day);
-      updateCountdownDisplay(nextEpTime, data.episodes || 0);
-    }
-
-  } catch (err) {
-    console.error(err);
-    modalTitle.textContent = "Error";
-    modalDesc.textContent = "Failed to load anime detail.";
-  }
+    
+// trailer
+if (data.trailer?.embed_url) {
+  trailerFrame.src = `${data.trailer.embed_url}?autoplay=0&mute=0`;
+  trailerContainer.classList.remove("hidden");
 }
 
-async function fetchAniListAiring(idMal) {
-  const query = `
-    query ($id: Int) {
-      Media(idMal: $id, type: ANIME) {
-        nextAiringEpisode {
-          episode
-          airingAt
-        }
-      }
-    }
-  `;
-  const res = await fetch("https://graphql.anilist.co", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Accept": "application/json" },
-    body: JSON.stringify({ query, variables: { id: idMal } })
-  });
-  const json = await res.json();
-  return json.data?.Media?.nextAiringEpisode || null;
-}
-
+// COUNTDOWN DARI ANILIST 
 const ani = await fetchAniListAiring(data.mal_id);
+
 const countdownEl = document.getElementById("modalCountdown");
 if (ani && ani.airingAt && ani.episode) {
   const nextEpNum = ani.episode;
@@ -242,7 +227,67 @@ if (ani && ani.airingAt && ani.episode) {
   countdownEl.textContent = `📺 Episode info not available`;
 }
 
+  } catch (err) {
+    console.error("Modal Error:", err);
+    modalTitle.textContent = "Error";
+    modalDesc.textContent = "Failed to load anime detail.";
+  }
+}
 
+//helper cuountdown 
+async function fetchAniListAiring(idMal) {
+  const query = `
+    query ($id: Int) {
+      Media(idMal: $id, type: ANIME) {
+        nextAiringEpisode {
+          episode
+          airingAt
+        }
+      }
+    }
+  `;
+  const res = await fetch("https://graphql.anilist.co", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    body: JSON.stringify({ query, variables: { id: idMal } })
+  });
+  const json = await res.json();
+  return json.data?.Media?.nextAiringEpisode || null;
+}
+
+
+// pencarian anime
+async function fetchAnime(query) {
+  if (!query) return;
+
+  resultsContainer.innerHTML = `<p class="text-slate-400 text-center">Searching for "${query}"...</p>`;
+  try {
+    const res = await fetch(`${apiBase}/anime?q=${encodeURIComponent(query)}&limit=25`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const { data } = await res.json();
+    resultsContainer.innerHTML = "";
+
+    if (!data.length) {
+      resultsContainer.innerHTML = `<p class="text-slate-400 text-center">No results for "${query}".</p>`;
+      return;
+    }
+
+    const seen = new Set();
+    data.forEach(anime => {
+      const uniqueKey = `${anime.mal_id}-${anime.title}`.toLowerCase().trim();
+      if (!seen.has(uniqueKey)) {
+        seen.add(uniqueKey);
+        resultsContainer.appendChild(createAnimeCard(anime));
+      }
+    });
+  } catch (err) {
+    console.error("Search error:", err);
+    resultsContainer.innerHTML = `<p class="text-red-500 text-center">Failed to fetch search results.</p>`;
+  }
+}
+
+//translate
 async function translateToIndo(text) {
   const encoded = encodeURIComponent(text);
   try {
@@ -251,7 +296,7 @@ async function translateToIndo(text) {
     return data[0].map(t => t[0]).join("") || text;
   } catch (err) {
     console.error("Translate error:", err);
-    return text;
+    return text; // fallback kalau error
   }
 }
 
