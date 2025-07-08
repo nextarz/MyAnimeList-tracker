@@ -17,6 +17,9 @@ const trailerContainer = document.getElementById("trailerContainer");
 const trailerFrame = document.getElementById("trailerFrame");
 
 const modalCharacters = document.querySelector("#modalCharacters .grid");
+const modalCover = document.getElementById("modalCover");
+const modalMeta = document.getElementById("modalMeta");
+const modalGenres = document.getElementById("modalGenres");
 
 // Close modal
 closeModalBtn.addEventListener("click", closeModal);
@@ -125,9 +128,17 @@ async function fetchAiringAnime() {
 
 // Open modal with details
 async function openModal(id) {
-  // scroll to top
-  window.scrollTo({ top: 0, behavior: "smooth" });
-  infoModal.showModal();
+  modalCover.src = data.images.jpg.image_url;
+modalTitle.textContent = data.title;
+modalMeta.textContent = `${data.type} · ${data.year || "Unknown"} · ${data.status} · ${data.episodes ?? "?"} eps`;
+modalRating.textContent = data.score ? `⭐ ${data.score}` : "";
+
+modalGenres.innerHTML = [...data.genres, ...data.themes].map(tag =>
+  `<span class="bg-slate-700 text-xs px-2 py-1 rounded">${tag.name}</span>`
+).join("");
+
+// Ringkasan sinopsis
+modalDesc.textContent = data.synopsis?.split(". ").slice(0, 2).join(". ") + "." || "No synopsis available.";
 
   // reset
   modalTitle.textContent = "Loading...";
