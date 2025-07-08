@@ -191,7 +191,7 @@ const countdownEl = document.getElementById("modalCountdown");
 if (ani && ani.airingAt && ani.episode) {
   const nextEpNum = ani.episode;
   const currentEp = nextEpNum - 1;
-  const nextAirMs = ani.airingAt * 1000;
+  const nextAirMs = new Date(ani.airingAt * 1000).getTime();
 
   const update = () => {
     const now = Date.now();
