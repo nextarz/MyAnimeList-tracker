@@ -191,6 +191,8 @@ async function openModal(id) {
     modalDesc.textContent = "Failed to load anime detail.";
   }
 }
+
+// pencarian anime
 async function fetchAnime(query) {
   if (!query) return;
 
@@ -207,14 +209,19 @@ async function fetchAnime(query) {
       return;
     }
 
+    const seen = new Set();
     data.forEach(anime => {
-      resultsContainer.appendChild(createAnimeCard(anime));
+      if (!seen.has(anime.mal_id)) {
+        seen.add(anime.mal_id);
+        resultsContainer.appendChild(createAnimeCard(anime));
+      }
     });
   } catch (err) {
     console.error("Search error:", err);
     resultsContainer.innerHTML = `<p class="text-red-500 text-center">Failed to fetch search results.</p>`;
   }
 }
+
 searchForm.addEventListener("submit", e => {
   e.preventDefault();
   fetchAnime(queryInput.value.trim());
