@@ -2,7 +2,7 @@
 
 const searchForm = document.getElementById("searchForm"); const queryInput = document.getElementById("queryInput"); const resultsContainer = document.getElementById("resultsContainer"); const airingContainer = document.getElementById("airingContainer");
 
-const infoModal = document.getElementById("infoModal"); const modalTitle = document.getElementById("modalTitle"); const modalDesc = document.getElementById("modalDesc"); const modalInfoList = document.getElementById("modalInfoList"); const modalRating = document.getElementById("modalRating"); const closeModalBtn = document.getElementById("closeModalBtn"); const trailerContainer = document.getElementById("trailerContainer"); const trailerFrame = document.getElementById("trailerFrame"); const modalCharacters = document.querySelector("#modalCharacters .grid");
+const infoModal = document.getElementById("infoModal"); const closeModalBtn = document.getElementById("closeModalBtn"); const trailerContainer = document.getElementById("trailerContainer"); const trailerFrame = document.getElementById("trailerFrame"); const modalContent = document.getElementById("modalContent");
 
 closeModalBtn.addEventListener("click", closeModal); window.addEventListener("keydown", e => { if (e.key === "Escape" && infoModal.open) closeModal(); });
 
@@ -22,51 +22,66 @@ const score = document.createElement("p"); score.className = "text-slate-400 tex
 
 info.append(title, synopsis, score); div.append(img, info); div.addEventListener("click", () => openModal(anime.mal_id)); return div; }
 
-async function fetchAnime(query) { resultsContainer.innerHTML = '<p class="text-center text-slate-400 mt-10">Loading...</p>'; try { const res = await fetch(${apiBase}/anime?q=${encodeURIComponent(query)}&limit=20); const { data } = await res.json(); const seen = new Set(); resultsContainer.innerHTML = ""; data.forEach(anime => { if (!seen.has(anime.mal_id)) { seen.add(anime.mal_id); resultsContainer.appendChild(createAnimeCard(anime)); } }); } catch (err) { console.error(err); resultsContainer.innerHTML = '<p class="text-red-500 text-center">Failed to fetch anime.</p>'; } }
+async function fetchAnime(query) { resultsContainer.innerHTML = <p class="text-center text-slate-400 mt-10">Loading...</p>; try { const res = await fetch(${apiBase}/anime?q=${encodeURIComponent(query)}&limit=20); const { data } = await res.json(); const seen = new Set(); resultsContainer.innerHTML = ""; data.forEach(anime => { if (!seen.has(anime.mal_id)) { seen.add(anime.mal_id); resultsContainer.appendChild(createAnimeCard(anime)); } }); } catch (err) { console.error(err); resultsContainer.innerHTML = <p class="text-red-500 text-center">Failed to fetch anime.</p>; } }
 
-async function fetchAiringAnime() { airingContainer.innerHTML = '<p class="text-slate-400 text-center">Loading airing anime...</p>'; let page = 1; let allAnime = []; const seen = new Set();
+async function fetchAiringAnime() { airingContainer.innerHTML = <p class="text-slate-400 text-center">Loading airing anime...</p>; let page = 1; let allAnime = []; const seen = new Set();
 
-try { while (true) { const res = await fetch(${apiBase}/seasons/now?page=${page}); if (!res.ok) throw new Error(HTTP error! Status: ${res.status}); const json = await res.json(); const animeList = json.data; if (animeList.length === 0) break; animeList.forEach((anime) => { if (!seen.has(anime.mal_id)) { seen.add(anime.mal_id); allAnime.push(anime); } }); if (!json.pagination.has_next_page) break; page++; } airingContainer.innerHTML = ""; allAnime.forEach((anime) => { airingContainer.appendChild(createAnimeCard(anime)); }); } catch (err) { console.error("Airing fetch error:", err); airingContainer.innerHTML = '<p class="text-red-500 text-center">Failed to load airing anime.</p>'; } }
+try { while (true) { const res = await fetch(${apiBase}/seasons/now?page=${page}); if (!res.ok) throw new Error(HTTP error! Status: ${res.status});
 
-async function openModal(id) { window.scrollTo({ top: 0, behavior: "smooth" }); infoModal.showModal(); modalTitle.textContent = "Loading..."; modalDesc.textContent = ""; modalInfoList.innerHTML = ""; modalRating.textContent = ""; modalCharacters.innerHTML = ""; trailerFrame.src = ""; trailerContainer.classList.add("hidden");
+const json = await res.json();
+  const animeList = json.data;
+
+  if (animeList.length === 0) break;
+
+  animeList.forEach(anime => {
+    if (!seen.has(anime.mal_id)) {
+      seen.add(anime.mal_id);
+      allAnime.push(anime);
+    }
+  });
+
+  if (!json.pagination.has_next_page) break;
+  page++;
+}
+
+airingContainer.innerHTML = "";
+allAnime.forEach(anime => {
+  airingContainer.appendChild(createAnimeCard(anime));
+});
+
+} catch (err) { console.error("Airing fetch error:", err); airingContainer.innerHTML = <p class="text-red-500 text-center">Failed to load airing anime.</p>; } }
+
+async function openModal(id) { window.scrollTo({ top: 0, behavior: "smooth" }); infoModal.showModal(); modalContent.innerHTML = <p class='text-slate-400 text-center'>Loading...</p>;
 
 try { const [animeRes, charsRes] = await Promise.all([ fetch(${apiBase}/anime/${id}/full), fetch(${apiBase}/anime/${id}/characters) ]); const { data } = await animeRes.json(); const { data: characters } = await charsRes.json();
 
-modalTitle.textContent = data.title;
-modalDesc.textContent = (data.synopsis || "No synopsis available.").split(". ").slice(0, 2).join(". ") + ".";
-modalRating.textContent = data.score ? `⭐ Rating: ${data.score}` : "";
-
-const info = [
-  { label: "Episodes", value: data.episodes ?? "Unknown" },
-  { label: "Status", value: data.status ?? "Unknown" },
-  { label: "Aired", value: data.aired?.string ?? "Unknown" },
-  { label: "Broadcast", value: data.broadcast?.string ?? "Unknown" },
-  { label: "Studios", value: data.studios.map(s => s.name).join(", ") || "Unknown" },
-  { label: "Genres", value: data.genres.map(g => g.name).join(", ") || "Unknown" },
-  { label: "Themes", value: data.themes.map(t => t.name).join(", ") || "Unknown" },
-  { label: "Source", value: data.source || "Unknown" },
-  { label: "Duration", value: data.duration || "Unknown" },
-  { label: "Rating", value: data.rating || "Unknown" }
+const cover = data.images.jpg.image_url;
+const synopsis = (data.synopsis || "No synopsis available.").split(". ").slice(0, 2).join(". ") + ".";
+const infoList = [
+  `${data.type} · ${data.year ?? "Unknown"}`,
+  `${data.status ?? "Unknown"}`,
+  `${data.episodes ?? "??"} episode`,
+  `${data.score ?? "N/A"}`
 ];
-modalInfoList.innerHTML = info.map(i =>
-  `<li><span class="font-semibold text-blue-400">${i.label}:</span> ${i.value}</li>`
-).join("");
+const genres = [...data.genres, ...data.themes].map(g => g.name);
 
-characters.slice(0, 6).forEach(char => {
-  const div = document.createElement("div");
-  div.className = "flex flex-col items-center";
-  div.innerHTML = `
-    <img src="${char.character.images.jpg.image_url}" alt="${char.character.name}" class="w-16 h-20 rounded shadow border border-gray-600 mb-1 object-cover" />
-    <span class="text-xs">${char.character.name}</span>`;
-  modalCharacters.appendChild(div);
-});
+modalContent.innerHTML = `
+  <div class="flex flex-col sm:flex-row gap-4">
+    <img src="${cover}" class="w-36 rounded shadow border border-gray-600" />
+    <div class="flex-1 space-y-2">
+      <h2 class="text-2xl font-bold">${data.title}</h2>
+      <ul class="flex gap-2 text-sm text-slate-400 flex-wrap">
+        ${infoList.map(item => `<li class="flex items-center gap-1">${item}</li>`).join("")}
+      </ul>
+      <div class="flex gap-2 flex-wrap">
+        ${genres.map(g => `<span class="px-2 py-1 text-xs bg-slate-700 rounded">${g}</span>`).join("")}
+      </div>
+      <p class="text-sm mt-2 leading-relaxed">${synopsis}</p>
+    </div>
+  </div>
+`;
 
-if (data.trailer?.embed_url) {
-  trailerFrame.src = `${data.trailer.embed_url}?autoplay=0&mute=0`;
-  trailerContainer.classList.remove("hidden");
-}
-
-} catch (err) { console.error(err); modalTitle.textContent = "Error"; modalDesc.textContent = "Failed to load anime detail."; } }
+} catch (err) { console.error(err); modalContent.innerHTML = <p class='text-red-500 text-center'>Failed to load anime detail.</p>; } }
 
 searchForm.addEventListener("submit", e => { e.preventDefault(); fetchAnime(queryInput.value.trim()); });
 
