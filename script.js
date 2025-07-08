@@ -129,11 +129,9 @@ async function fetchAiringAnime() {
 
 // Open modal with details
 async function openModal(id) {
-  // scroll to top
   window.scrollTo({ top: 0, behavior: "smooth" });
   infoModal.showModal();
 
-  // reset
   modalTitle.textContent = "Loading...";
   modalDesc.textContent = "";
   modalInfoList.innerHTML = "";
@@ -141,6 +139,7 @@ async function openModal(id) {
   modalCharacters.innerHTML = "";
   trailerFrame.src = "";
   trailerContainer.classList.add("hidden");
+  document.getElementById("modalCountdown").textContent = "";
 
   try {
     const [animeRes, charsRes] = await Promise.all([
@@ -170,7 +169,6 @@ async function openModal(id) {
       `<li><span class="font-semibold text-blue-400">${i.label}:</span> ${i.value}</li>`
     ).join("");
 
-    // characters
     characters.slice(0, 6).forEach(char => {
       const div = document.createElement("div");
       div.className = "flex flex-col items-center";
@@ -180,16 +178,63 @@ async function openModal(id) {
       modalCharacters.appendChild(div);
     });
 
-    // trailer
     if (data.trailer?.embed_url) {
       trailerFrame.src = `${data.trailer.embed_url}?autoplay=0&mute=0`;
       trailerContainer.classList.remove("hidden");
     }
+
+    // ⏳ Countdown & Episode
+    const countdownEl = document.getElementById("modalCountdown");
+    const currentEp = data.episodes ?? "Unknown";
+    const day = data.broadcast?.day;
+    const time = data.broadcast?.time;
+    const zone = data.broadcast?.timezone;
+
+    if (day && time && zone) {
+      const nextAirDate = getNextBroadcastDate(day, time, zone);
+      const updateCountdown = () => {
+        const now = new Date();
+        const diff = nextAirDate - now;
+        if (diff <= 0) {
+          countdownEl.textContent = `📺 Episode ${currentEp} airing now!`;
+          return;
+        }
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        countdownEl.textContent = `📺 Current Episode: ${currentEp} | ⏳ Next in: ${hours}h ${mins}m`;
+      };
+
+      updateCountdown();
+      const interval = setInterval(() => {
+        updateCountdown();
+        if (nextAirDate - new Date() <= 0) clearInterval(interval);
+      }, 60000);
+    } else {
+      countdownEl.textContent = `📺 Current Episode: ${currentEp}`;
+    }
+
   } catch (err) {
     console.error(err);
     modalTitle.textContent = "Error";
     modalDesc.textContent = "Failed to load anime detail.";
   }
+}
+function getNextBroadcastDate(dayStr, timeStr, zone) {
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const targetDay = days.indexOf(dayStr);
+  const [hour, minute] = timeStr.split(":").map(Number);
+
+  const now = new Date();
+  let next = new Date(now.toLocaleString("en-US", { timeZone: zone }));
+  next.setHours(hour, minute, 0, 0);
+
+  while (next.getDay() !== targetDay || next <= now) {
+    next.setDate(next.getDate() + 1);
+  }
+
+  // Convert ke waktu lokal user
+  const localTime = new Date(next.toLocaleString("en-US", { timeZone: "UTC" }));
+  return localTime;
 }
 
 // pencarian anime
