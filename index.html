@@ -24,22 +24,36 @@
 </form>    <!-- Search Results -->    <main id="resultsContainer" class="w-full max-w-md flex flex-col gap-4 mb-10"></main>    <!-- Airing Section -->    <section id="airingSection" class="w-full max-w-md">    
   <h2 class="text-xl font-bold mb-4">🔥 Currently Airing</h2>    
   <div id="airingContainer" class="flex flex-col gap-4"></div>    
-</section>    <!-- Modal -->    <dialog id="infoModal" class="bg-slate-800 text-white rounded-lg p-5 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl border border-blue-600 relative">    
-  <button id="closeModalBtn" class="absolute top-3 right-3 text-gray-400 hover:text-white focus:outline-none">    
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">    
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />    
-    </svg>    
-  </button>    
-  <h2 id="modalTitle" class="text-2xl font-bold mb-4"></h2>    
-  <div id="modalDesc" class="text-sm leading-relaxed mb-4 whitespace-pre-wrap"></div>    
-  <ul id="modalInfoList" class="text-sm space-y-1 mb-4"></ul>    
-  <div id="modalRating" class="text-yellow-400 font-semibold text-lg mb-4"></div>      <!-- Character List -->      <div id="modalCharacters" class="mb-4">    
-    <h3 class="font-bold text-lg mb-2">Karakter</h3>    
-    <div class="grid grid-cols-3 gap-3 text-center text-sm"></div>    
-  </div>      <!-- Songs -->      <div id="modalSongs" class="mb-4">    </ul>    
-  </div>  <!-- Trailer -->      <div id="trailerContainer" class="aspect-video w-full rounded overflow-hidden hidden">    
-    <iframe id="trailerFrame" class="w-full h-full" allowfullscreen loading="lazy"></iframe>    
-  </div>    
+</section>    <!-- Modal --><dialog id="infoModal" class="bg-slate-800 text-white rounded-lg p-5 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl border border-blue-600 relative">
+  <button id="closeModalBtn" class="absolute top-3 right-3 text-gray-400 hover:text-white focus:outline-none">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  </button>
+
+  <!-- Layout Baru -->
+  <div class="flex gap-4 mb-4">
+    <img id="modalCover" src="" alt="Cover" class="w-28 h-40 rounded-md object-cover border border-gray-600" />
+    <div class="flex-1">
+      <h2 id="modalTitle" class="text-xl font-bold mb-1"></h2>
+      <p id="modalMeta" class="text-sm text-slate-400 mb-2"></p>
+      <div id="modalGenres" class="flex flex-wrap gap-1 mb-2"></div>
+      <p id="modalRating" class="text-yellow-400 font-semibold text-sm"></p>
+    </div>
+  </div>
+
+  <div id="modalDesc" class="text-sm leading-relaxed mb-4 whitespace-pre-wrap text-slate-300"></div>
+
+  <ul id="modalInfoList" class="text-sm space-y-1 mb-4 text-slate-400"></ul>
+
+  <div id="modalCharacters" class="mb-4">
+    <h3 class="font-bold text-lg mb-2">Karakter</h3>
+    <div class="grid grid-cols-3 gap-3 text-center text-sm"></div>
+  </div>
+
+  <div id="trailerContainer" class="aspect-video w-full rounded overflow-hidden hidden mb-3">
+    <iframe id="trailerFrame" class="w-full h-full" allowfullscreen loading="lazy"></iframe>
+  </div>
 </dialog>    <!-- Footer -->    <footer class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-700 text-center text-xs text-slate-400 py-2 z-50">    
   <p>&copy; <span id="year"></span> Abu Kentucky. Built using Jikan API & Tailwind CSS.</p>    
 </footer>  
