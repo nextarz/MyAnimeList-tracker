@@ -191,36 +191,57 @@ async function openModal(id) {
   }
 }
 
-function parseBroadcastTime(timeStr, dayStr) {
-  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const now = new Date();
-  const [hour, minute] = timeStr.split(":").map(Number);
-  let target = new Date();
-  target.setUTCHours(hour, minute, 0, 0);
-  target.setUTCDate(now.getUTCDate() + ((7 + days.indexOf(dayStr) - now.getUTCDay()) % 7));
-  if (target < now) target.setUTCDate(target.getUTCDate() + 7);
-  return target;
+async function fetchAniListAiring(idMal) {
+  const query = `
+    query ($id: Int) {
+      Media(idMal: $id, type: ANIME) {
+        nextAiringEpisode {
+          episode
+          airingAt
+        }
+      }
+    }
+  `;
+  const res = await fetch("https://graphql.anilist.co", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    body: JSON.stringify({ query, variables: { id: idMal } })
+  });
+  const json = await res.json();
+  return json.data?.Media?.nextAiringEpisode || null;
 }
 
-function updateCountdownDisplay(nextDate, currentEp) {
-  function update() {
-    const now = new Date();
-    const diff = nextDate - now;
+const ani = await fetchAniListAiring(data.mal_id);
+const countdownEl = document.getElementById("modalCountdown");
+if (ani && ani.airingAt && ani.episode) {
+  const nextEpNum = ani.episode;
+  const currentEp = nextEpNum - 1;
+  const nextAirMs = ani.airingAt * 1000;
+
+  const update = () => {
+    const now = Date.now();
+    const diff = nextAirMs - now;
+
     if (diff <= 0) {
-      modalCountdown.textContent = `📺 Current Episode: ${currentEp + 1} | ⏳ Next in: airing now!`;
+      countdownEl.textContent = `📺 Current Episode: ${nextEpNum} | ⏳ Airing now!`;
       return;
     }
-    const totalSec = Math.floor(diff / 1000);
-    const days = Math.floor(totalSec / 86400);
-    const hours = Math.floor((totalSec % 86400) / 3600);
-    const mins = Math.floor((totalSec % 3600) / 60);
-    const secs = totalSec % 60;
-    modalCountdown.textContent = `📺 Current Episode: ${currentEp} | ⏳ Next in: ${days}d ${hours}h ${mins}m ${secs}s`;
-  }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+    countdownEl.textContent =
+      `📺 Current Episode: ${currentEp} | ⏳ Next Episode (${nextEpNum}) in: ${days}d ${hours}h ${mins}m ${secs}s`;
+  };
+
   update();
-  const interval = setInterval(update, 1000);
-  infoModal.addEventListener("close", () => clearInterval(interval));
+  const iv = setInterval(update, 1000);
+} else {
+  countdownEl.textContent = `📺 Episode info not available`;
 }
+
 
 async function translateToIndo(text) {
   const encoded = encodeURIComponent(text);
