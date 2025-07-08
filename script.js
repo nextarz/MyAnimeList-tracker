@@ -198,7 +198,7 @@ async function fetchAnime(query) {
 
   resultsContainer.innerHTML = `<p class="text-slate-400 text-center">Searching for "${query}"...</p>`;
   try {
-    const res = await fetch(`${apiBase}/anime?q=${encodeURIComponent(query)}&limit=20`);
+    const res = await fetch(`${apiBase}/anime?q=${encodeURIComponent(query)}&limit=25`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const { data } = await res.json();
@@ -209,13 +209,13 @@ async function fetchAnime(query) {
       return;
     }
 
-    // dedupe by mal_id
-    const unique = Array.from(
-      new Map(data.map(item => [item.mal_id, item])).values()
-    );
-
-    unique.forEach(anime => {
-      resultsContainer.appendChild(createAnimeCard(anime));
+    const seen = new Set();
+    data.forEach(anime => {
+      const uniqueKey = `${anime.mal_id}-${anime.title}`.toLowerCase().trim();
+      if (!seen.has(uniqueKey)) {
+        seen.add(uniqueKey);
+        resultsContainer.appendChild(createAnimeCard(anime));
+      }
     });
   } catch (err) {
     console.error("Search error:", err);
