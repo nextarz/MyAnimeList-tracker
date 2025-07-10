@@ -12,7 +12,7 @@ Sebuah website pelacak anime yang dibuat dengan semangat, kopi, dan bantuan dari
 6. 👥 **Karakter Anime** – Lihat karakter utama dari anime pilihan lu.
 7. 🎬 **Trailer Anime** – Nonton teaser/trailer langsung dari YouTube.
 
-## 💻 Coba Sekarang
+## 💻 Silahkan Mampir 
 
 🟢 Website:  
 👉 [https://my-anime-list-tracker.vercel.app](https://my-anime-list-tracker.vercel.app)
