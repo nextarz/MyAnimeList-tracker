@@ -19,7 +19,7 @@ Sebuah website pelacak anime yang dibuat dengan semangat, kopi, dan bantuan dari
 
 ## 🤝 Terima Kasih
 
-Terima kasih banyak buat teman-teman GitHub yang udah bantuin project ini dari awal sampai jadi. Satu kata: **KEREN!** 🚀
+Terima kasih banyak buat teman-teman GitHub yang udah bantuin project ini dari awal sampai jadi 🚀
 
 ---
 
