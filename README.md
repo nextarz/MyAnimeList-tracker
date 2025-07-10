@@ -1,20 +1,26 @@
-# MyAnimeList-tracker
-## Akhirnya selesai juga dari tahun kemarin.
+# 🎌 Anime Tracker
 
-Kali ini saya buat website bernama
-"Anime Tracker"
+Sebuah website pelacak anime yang dibuat dengan semangat, kopi, dan bantuan dari teman-teman GitHub ❤️
 
-## Fiktur nya :
-1.currently airing
-2.search anime
-3.sipnosis anime (translate indo)
-4.informasi anime seperti studio,genre,dll
-5.countdown episode anime
-6.karakter anime
-7.trailer anime
+## ✨ Fitur Utama
 
-Terimakasih banyak buat temen github yang udh mau Collab bantuin projek ini. Yang mau nyoba link nya ada di bawah ⬇️⬇️
+1. 📺 **Currently Airing** – Tampilkan anime yang sedang tayang saat ini.
+2. 🔍 **Pencarian Anime** – Cari anime favorit lu dengan mudah.
+3. 📝 **Sinopsis (dengan Terjemahan Bahasa Indonesia)** – Biar makin ngerti ceritanya.
+4. 🧩 **Informasi Lengkap** – Studio, genre, status, episode, dan lainnya.
+5. ⏳ **Countdown Episode** – Hitung mundur ke episode selanjutnya!
+6. 👥 **Karakter Anime** – Lihat karakter utama dari anime pilihan lu.
+7. 🎬 **Trailer Anime** – Nonton teaser/trailer langsung dari YouTube.
 
-» https://my-anime-list-tracker.vercel.app «
+## 💻 Coba Sekarang
 
-IMPHNEN
+🟢 Website:  
+👉 [https://my-anime-list-tracker.vercel.app](https://my-anime-list-tracker.vercel.app)
+
+## 🤝 Terima Kasih
+
+Terima kasih banyak buat teman-teman GitHub yang udah bantuin project ini dari awal sampai jadi. Satu kata: **KEREN!** 🚀
+
+---
+
+**IMPHNEN**
