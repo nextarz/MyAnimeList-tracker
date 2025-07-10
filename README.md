@@ -9,7 +9,7 @@ Sebuah website pelacak anime yang dibuat dengan bantuan apiBase MyAnimeList ❤�
 3. 📝 **Sinopsis (dengan Terjemahan Bahasa Indonesia)** – Biar makin ngerti ceritanya.
 4. 🧩 **Informasi Lengkap** – Studio, genre, status, episode, dan lainnya.
 5. ⏳ **Countdown Episode** – Hitung mundur ke episode selanjutnya!
-6. 👥 **Karakter Anime** – Lihat karakter utama dari anime pilihan lu.
+6. 👥 **Karakter Anime** – Lihat karakter utama dari anime pilihan.
 7. 🎬 **Trailer Anime** – Nonton teaser/trailer langsung dari YouTube.
 
 ## 💻 Silahkan Mampir 
