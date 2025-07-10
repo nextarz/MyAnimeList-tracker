@@ -5,7 +5,7 @@ Sebuah website pelacak anime yang dibuat dengan bantuan apiBase MyAnimeList ❤�
 ## ✨ Fitur Utama
 
 1. 📺 **Currently Airing** – Tampilkan anime yang sedang tayang saat ini.
-2. 🔍 **Pencarian Anime** – Cari anime favorit lu dengan mudah.
+2. 🔍 **Pencarian Anime** – Cari anime favorit kamu dengan mudah.
 3. 📝 **Sinopsis (dengan Terjemahan Bahasa Indonesia)** – Biar makin ngerti ceritanya.
 4. 🧩 **Informasi Lengkap** – Studio, genre, status, episode, dan lainnya.
 5. ⏳ **Countdown Episode** – Hitung mundur ke episode selanjutnya!
