@@ -1,6 +1,6 @@
 # 🎌 Anime Tracker
 
-Sebuah website pelacak anime yang dibuat dengan semangat, kopi, dan bantuan dari teman-teman GitHub ❤️
+Sebuah website pelacak anime yang dibuat dengan bantuan apiBase MyAnimeList ❤️
 
 ## ✨ Fitur Utama
 
