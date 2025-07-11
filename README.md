@@ -1,26 +1,31 @@
-# 🎌 Anime Tracker
+# 🇯🇵 Anime Tracker
 
-Sebuah website pelacak anime yang dibuat dengan bantuan apiBase MyAnimeList ❤️
+A simple anime tracker website built using the MyAnimeList API ❤️
 
-## ✨ Fitur Utama
+---
 
-1. 📺 **Currently Airing** – Tampilkan anime yang sedang tayang saat ini.
-2. 🔍 **Pencarian Anime** – Cari anime favorit kamu dengan mudah.
-3. 📝 **Sinopsis (dengan Terjemahan Bahasa Indonesia)** – Biar makin ngerti ceritanya.
-4. 🧩 **Informasi Lengkap** – Studio, genre, status, episode, dan lainnya.
-5. ⏳ **Countdown Episode** – Hitung mundur ke episode selanjutnya!
-6. 👥 **Karakter Anime** – Lihat karakter utama dari anime pilihan.
-7. 🎬 **Trailer Anime** – Nonton teaser/trailer langsung dari YouTube.
+## ✨ Main Features
 
-## 💻 Silahkan Mampir 
+1. 📺 **Currently Airing** – Shows currently airing anime.
+2. 🔍 **Anime Search** – Easily search your favorite anime.
+3. 📝 **Synopsis (With Indonesian Translation)** – Understand the story better with translations.
+4. 🧩 **Full Details** – Studio, genre, status, episode count, and more.
+5. ⏳ **Episode Countdown** – Countdown to the next episode!
+6. 👥 **Anime Characters** – See the main characters of your selected anime.
+7. 🎬 **Anime Trailers** – Watch trailers/teasers directly from YouTube.
+
+---
+
+## 💻 Check It Out
 
 🟢 Website:  
 👉 [https://my-anime-list-tracker.vercel.app](https://my-anime-list-tracker.vercel.app)
 
-## 🤝 Terima Kasih
-
-Terima kasih banyak buat teman-teman GitHub yang udah bantuin project ini dari awal sampai jadi 🚀
-
 ---
 
-**IMPHNEN**
+## 🤝 Special Thanks
+
+thanks to all the GitHub friends who supported this project from start to finish 🚀
+
+---
+IMPHNEN 
