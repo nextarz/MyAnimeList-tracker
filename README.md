@@ -18,8 +18,7 @@ A simple anime tracker website built using the MyAnimeList API ❤️
 
 ## 💻 Check It Out
 
-🟢 Website:  
-👉 (https://my-anime-list-tracker.vercel.app)[Anime Tracker]
+[![Website](https://img.shields.io/badge/Visit_Website-1f1f1f?style=for-the-badge&logo=vercel&logoColor=white)](https://my-anime-list-tracker.vercel.app)
 
 ---
 
